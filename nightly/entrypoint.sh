@@ -19,7 +19,7 @@ downloadbranch() {
 	SHORT_NAME=$(echo $BASE_BRANCH | sed 's/ee-//g' | sed 's/\.//g')
 	NEW_BASELINE=
 
-	if [ "" != "$RELEASE_BUILD" ] || [ -d "${LIFERAY_HOME}/patches" ]; then
+	if [ "" != "$RELEASE_ID" ] || [ -d "${LIFERAY_HOME}/patches" ]; then
 		downloadreleasebuild
 		return 0
 	fi
