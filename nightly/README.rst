@@ -56,25 +56,35 @@ Note that this capability also means that you can use a pre-built Liferay, which
 Run a Nightly Build
 -------------------
 
-The default behavior if no special environment variables are set is to attempt to download a nightly build of master. You can specify whether you want to test against 7.0.x by providing the ``BASE_BRANCH`` environment variable.
+The default behavior if no special environment variables are set is to attempt to download a nightly build of master. You can specify whether you want to test against 7.0.x by providing the ``BASE_BRANCH`` environment variable or you can pass the branch as an argument.
 
 .. code-block:: bash
 
 	docker run --name LESATICKET-ID -e BASE_BRANCH=7.0.x liferay-nightly-build
+	docker run --name LESATICKET-ID liferay-nightly-build 7.0.x
 
 Run a Release
 -------------
 
-You can specify a release build by provide the ``RELEASE_ID`` environment variable. CE releases have the form ``7.0.0-ga1``, where the value corresponds to a tag on the ``liferay-portal`` repository, while EE releases have the form ``7.0.10.1``, where the point release corresponds to the service pack of the release.
+You can specify a release build by provide the ``RELEASE_ID`` environment variable. CE releases have the form ``7.0.0-ga1``, where the value corresponds to a tag on the ``liferay-portal`` repository, while EE releases have the form ``7.0.10.1``, where the point release corresponds to the service pack of the release or you can pass the name of the release as an argument.
 
 .. code-block:: bash
 
 	docker run --name LESATICKET-ID -e RELEASE_ID=7.0.10.6 liferay-nightly-build
+	docker run --name LESATICKET-ID liferay-nightly-build 7.0.10.6
+
+Apply a Fix Pack or Hotfix
+--------------------------
 
 As noted above, you can provide a ``patches`` folder and it will automatically attempt to patch a release bundle. If you do not specify a ``RELEASE_ID``, the initialization script will assume you wish to patch the initial release of 7.0.10. You can have it patch a different release by providing a ``RELEASE_ID``, as described above.
 
-Run a Fix Pack
---------------
+Alternately, you can provide the name of the patch as a ``PATCH_ID`` environment variable or pass the patch ID as an argument. This environment variable allows for shorthand (``de-1``, ``hotfix-1``) and for a longer form (``liferay-fix-pack-de-1-7010``, ``liferay-hotfix-1-7010``).
+
+	docker run --name LESATICKET-ID -e PATCH_ID=de-1 liferay-nightly-build
+	docker run --name LESATICKET-ID liferay-nightly-build de-1
+
+Run a Fix Pack (Source)
+-----------------------
 
 If you wish to run a fix pack, you can specify a DE fix pack built from source by providing the ``BASE_TAG`` environment variable. Note that if you wish to use a patched DE fix pack rather than one from source, you will need to use the ``patches`` folder instead of specifying a fix pack tag.
 

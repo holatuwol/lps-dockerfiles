@@ -5,6 +5,17 @@ copyextras() {
 		rsync -av "${LIFERAY_HOME}/drivers/" "${LIFERAY_HOME}/tomcat/lib/ext/"
 	fi
 
+	cd "${LIFERAY_HOME}"
+	getpatchingtool
+	cd -
+
+	if [ "" != "$PATCH_ID" ]; then
+		cd "${LIFERAY_HOME}"
+		mkdir -p patches
+		getpatch $PATCH_ID
+		cd -
+	fi
+
 	if [ -d "${LIFERAY_HOME}/patches" ]; then
 		rsync -av "${LIFERAY_HOME}/patches/" "${LIFERAY_HOME}/patching-tool/patches/"
 
@@ -62,7 +73,7 @@ downloadbranchbuild() {
 downloadbranchmirror() {
 	local REQUEST_URL=
 
-	if [[ "$BASE_BRANCH" == ee-* ]] || [[ "$BASE_BRANCH" == *-private ]]; then
+	if [[ "$BASE_BRANCH" == *-private ]]; then
 		if [ "" == "$LIFERAY_FILES_MIRROR" ]; then
 			return 0
 		fi
@@ -76,7 +87,7 @@ downloadbranchmirror() {
 		REQUEST_URL="$LIFERAY_RELEASES_MIRROR/portal/nightly-$BASE_BRANCH/"
 	fi
 
-	echo "Attempting to download from ${REQUEST_URL}"
+	echo "Identifying build timestamp via ${REQUEST_URL}"
 
 	local BUILD_TIMESTAMP=$(curl -s --connect-timeout 2 $REQUEST_URL | grep -o '<a href="[0-9]*/">' | cut -d'"' -f 2 | sort | tail -1)
 
@@ -98,6 +109,8 @@ downloadbranchmirror() {
 	BUILD_TIMESTAMP=$(echo $BUILD_TIMESTAMP | cut -d'/' -f 1)
 	BUILD_NAME="$SHORT_NAME-$BUILD_TIMESTAMP.zip"
 
+	echo "Identifying build candidate via ${REQUEST_URL}"
+
 	local BUILD_CANDIDATE=$(curl -s --connect-timeout 2 $REQUEST_URL | grep -o '<a href="[^"]*tomcat-7.0-[^"]*">' | cut -d'"' -f 2 | sort | tail -1)
 
 	if [ "" == "$BUILD_CANDIDATE" ]; then
@@ -118,7 +131,7 @@ downloadbuild() {
 		return 0
 	fi
 
-	if [ -d /build ] && [ "" != "$(find "${LIFERAY_HOME}" -name catalina.sh)" ]; then
+	if [ -d /build ] && [ "" != "$(find /build -name catalina.sh)" ]; then
 		return 0
 	elif [ "" != "$BUILD_NAME" ]; then
 		extract
@@ -152,7 +165,7 @@ downloadreleasebuild() {
 		REQUEST_URL="$LIFERAY_RELEASES_MIRROR/portal/${RELEASE_ID}/"
 	fi
 
-	echo "Attempting to download from ${REQUEST_URL}"
+	echo "Identifying build candidate via ${REQUEST_URL}"
 
 	local BUILD_CANDIDATE=$(curl -s --connect-timeout 2 $REQUEST_URL | grep -o '<a href="[^"]*tomcat-7.0-[^"]*">' | cut -d'"' -f 2 | sort | tail -1)
 
@@ -220,9 +233,66 @@ getbuild() {
 		LOCAL_NAME=$2
 	fi
 
-	echo "Attempting to download from $1"
+	echo "Attempting to download $1"
 
 	curl -o ${LIFERAY_HOME}/${LOCAL_NAME} "$1"
+}
+
+getpatch() {
+	local PATCH_FOLDER=
+	local PATCH_FILE=
+
+	if [[ "$1" == de-* ]]; then
+		PATCH_FOLDER=de
+		PATCH_FILE=liferay-fix-pack-$1-7010.zip
+	elif [[ "$1" == hotfix-* ]]; then
+		PATCH_FOLDER=hotfix
+		PATCH_FILE=liferay-$1-7010.zip
+	elif [[ "$1" == liferay-fix-pack-* ]]; then
+		PATCH_FOLDER=de
+
+		if [[ "$1" == *.zip ]]; then
+			PATCH_FILE=$1
+		else
+			PATCH_FILE=$1.zip
+		fi
+	elif [[ "$1" == liferay-hotfix-* ]]; then
+		PATCH_FOLDER=hotfix
+
+		if [[ "$1" == *.zip ]]; then
+			PATCH_FILE=$1
+		else
+			PATCH_FILE=$1.zip
+		fi
+	fi
+
+	if [ "" == "$PATCH_FILE" ]; then
+		return 0
+	fi
+
+	local REQUEST_URL="$LIFERAY_FILES_MIRROR/private/ee/fix-packs/7.0.10/${PATCH_FOLDER}/${PATCH_FILE}"
+
+	echo "Attempting to download ${REQUEST_URL}"
+	curl -o patches/${PATCH_FILE} "${REQUEST_URL}"
+}
+
+getpatchingtool() {
+	local REQUEST_URL=${LIFERAY_FILES_MIRROR}/private/ee/fix-packs/patching-tool/
+
+	echo "Checking for latest patching tool at ${REQUEST_URL}"
+	local PATCHING_TOOL_VERSION=$(curl $REQUEST_URL | grep -o '<a href="patching-tool-2\.[^"]*' | cut -d'"' -f 2 | grep -F internal | sort | tail -1)
+
+	if [ -f $PATCHING_TOOL_VERSION ]; then
+		return 0
+	fi
+
+	REQUEST_URL=${REQUEST_URL}${PATCHING_TOOL_VERSION}
+
+	echo "Retrieving latest patching tool at ${REQUEST_URL}"
+	curl -o $PATCHING_TOOL_VERSION $REQUEST_URL
+
+	rm -rf patching-tool
+	unzip $PATCHING_TOOL_VERSION
 }
 
 makesymlink() {
@@ -235,15 +305,38 @@ makesymlink() {
 	ln -s $CATALINA_HOME ${LIFERAY_HOME}/tomcat
 }
 
+parsearg() {
+	if [ "" == "$1" ]; then
+		return 0
+	fi
+
+	if [[ "$1" == *.x ]] || [ "$1" == "master" ]; then
+		BASE_BRANCH=$1
+		return 0
+	fi
+
+	if [[ "$1" == fix-pack-* ]]; then
+		BASE_TAG=$1
+		return 0
+	fi
+
+	if [ "" == "$RELEASE_ID" ]; then
+		RELEASE_ID=7.0.10
+	fi
+
+	PATCH_ID=$1
+}
+
 # Download and unzip the build
+
+parsearg $1
+downloadbuild
+makesymlink
+copyextras
 
 if [ -d /build ]; then
 	rsync -avr /build/ ${LIFERAY_HOME}/
 fi
-
-downloadbuild
-makesymlink
-copyextras
 
 # Copy portal-ext.properties, if present
 
