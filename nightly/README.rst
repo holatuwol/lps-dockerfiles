@@ -24,6 +24,18 @@ Initial Setup
 
 	docker build /path/to/repository/nightly -t liferay-nightly-build
 
+4. If you want to just spin up a nightly build of master running on Hypersonic, you can use the following command.
+
+.. code-block:: bash
+
+	docker run --name LESATICKET-ID liferay-nightly-build
+
+5. You can access the Tomcat instance by finding the IP address, which can be done with the following command.
+
+.. code-block:: bash
+
+	docker inspect -f '{{range .NetworkSettings.Networks}}{{.IPAddress}}{{end}}' LESATICKET-ID
+
 Additional Files
 ----------------
 
