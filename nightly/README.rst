@@ -80,6 +80,8 @@ As noted above, you can provide a ``patches`` folder and it will automatically a
 
 Alternately, you can provide the name of the patch as a ``PATCH_ID`` environment variable or pass the patch ID as an argument. This environment variable allows for shorthand (``de-1``, ``hotfix-1``) and for a longer form (``liferay-fix-pack-de-1-7010``, ``liferay-hotfix-1-7010``).
 
+.. code-block:: bash
+
 	docker run --name LESATICKET-ID -e PATCH_ID=de-1 liferay-nightly-build
 	docker run --name LESATICKET-ID liferay-nightly-build de-1
 
@@ -96,5 +98,7 @@ Run a Local Build
 -----------------
 
 If a Tomcat bundle already exists in the folder specified by the ``build`` folder mounted from your local system, this Tomcat bundle will be copied instead of a new Tomcat bundle being downloaded from the nightly build servers. This allows you to container-ize a local build of Liferay.
+
+.. code-block:: bash
 
 	docker run --name LESATICKET-ID --volume /path/to/local/liferay/home:/build liferay-nightly-build
