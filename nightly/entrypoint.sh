@@ -277,6 +277,16 @@ getpatch() {
 
 	echo "Attempting to download ${REQUEST_URL}"
 	curl -o patches/${PATCH_FILE} "${REQUEST_URL}"
+
+	if [[ "$PATCH_FILE" == liferay-hotfix-* ]]; then
+		local NEEDED_DE_VERSION=$(unzip -c patches/${PATCH_FILE} fixpack_documentation.xml | grep requirements | grep -o 'de=[0-9]*' | cut -d'=' -f 2)
+
+		if [ "" != "${NEEDED_DE_VERSION}" ]; then
+			getpatch de-${NEEDED_DE_VERSION}
+		else
+			echo 'Unable to determine needed DE release from fixpack_documentation.xml'
+		fi
+	fi
 }
 
 getpatchingtool() {
