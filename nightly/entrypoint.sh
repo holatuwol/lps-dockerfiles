@@ -30,7 +30,7 @@ downloadbranch() {
 	SHORT_NAME=$(echo $BASE_BRANCH | sed 's/ee-//g' | sed 's/\.//g')
 	NEW_BASELINE=
 
-	if [ "" != "$RELEASE_ID" ] || [ -d "${LIFERAY_HOME}/patches" ]; then
+	if [ "" != "$PATCH_ID" ] || [ "" != "$RELEASE_ID" ] || [ -d "${LIFERAY_HOME}/patches" ]; then
 		downloadreleasebuild
 		return 0
 	fi
@@ -152,7 +152,7 @@ downloadreleasebuild() {
 	local REQUEST_URL=
 
 	if [ "" == "$RELEASE_ID" ]; then
-		if [ -d $LIFERAY_HOME/patches ]; then
+		if [ -d $LIFERAY_HOME/patches ] || [ "" != "$PATCH_ID" ]; then
 			RELEASE_ID=7.0.10
 		else
 			RELEASE_ID=7.0.0-ga1
