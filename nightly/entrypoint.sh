@@ -245,6 +245,9 @@ getpatch() {
 	if [[ "$1" == de-* ]]; then
 		PATCH_FOLDER=de
 		PATCH_FILE=liferay-fix-pack-$1-7010.zip
+	elif [[ "$1" == hotfix-*-7010 ]]; then
+		PATCH_FOLDER=hotfix
+		PATCH_FILE=liferay-$1.zip
 	elif [[ "$1" == hotfix-* ]]; then
 		PATCH_FOLDER=hotfix
 		PATCH_FILE=liferay-$1-7010.zip
