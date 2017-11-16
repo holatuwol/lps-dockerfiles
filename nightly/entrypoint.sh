@@ -20,7 +20,15 @@ copyextras() {
 		rsync -av "${LIFERAY_HOME}/patches/" "${LIFERAY_HOME}/patching-tool/patches/"
 
 		cd "${LIFERAY_HOME}/patching-tool"
-		./patching-tool.sh auto-discovery ..
+		./patching-tool.sh auto-discovery .. | grep -F '=' | tee test.properties
+
+		if [ ! -f default.properties ]; then
+			mv test.properties default.properties
+		else
+			rm test.properties
+		fi
+
+		echo 'auto.update.plugins=true' >> default.properties
 		./patching-tool.sh install
 		cd -
 	fi
@@ -159,7 +167,7 @@ downloadreleasebuild() {
 		fi
 	fi
 
-	if [[ "$RELEASE_ID" == 7.0.10 ]]; then
+	if [[ 10 -ge $(echo "$RELEASE_ID" | cut -d'.' -f 3 | cut -d'-' -f 1) ]]; then
 		REQUEST_URL="$LIFERAY_FILES_MIRROR/private/ee/portal/${RELEASE_ID}/"
 	else
 		REQUEST_URL="$LIFERAY_RELEASES_MIRROR/portal/${RELEASE_ID}/"
@@ -167,7 +175,7 @@ downloadreleasebuild() {
 
 	echo "Identifying build candidate via ${REQUEST_URL}"
 
-	local BUILD_CANDIDATE=$(curl -s --connect-timeout 2 $REQUEST_URL | grep -o '<a href="[^"]*tomcat-7.0-[^"]*">' | cut -d'"' -f 2 | sort | tail -1)
+	local BUILD_CANDIDATE=$(curl -s --connect-timeout 2 $REQUEST_URL | grep -o '<a href="[^"]*tomcat-[^"]*.zip">' | grep -vF 'jre' | cut -d'"' -f 2 | sort | tail -1)
 
 	if [ "" == "$BUILD_CANDIDATE" ]; then
 		return 0
@@ -179,7 +187,7 @@ downloadreleasebuild() {
 
 	echo "Downloading $RELEASE_ID release (used for patching)"
 
-	BUILD_NAME=$SHORT_NAME-$BUILD_TIMESTAMP.zip
+	BUILD_NAME=${RELEASE_ID}.zip
 	getbuild $REQUEST_URL $BUILD_NAME
 }
 
@@ -242,15 +250,34 @@ getpatch() {
 	local PATCH_FOLDER=
 	local PATCH_FILE=
 
-	if [[ "$1" == de-* ]]; then
-		PATCH_FOLDER=de
-		PATCH_FILE=liferay-fix-pack-$1-7010.zip
+	if [[ "$1" == hotfix-*-6210 ]]; then
+		PATCH_FOLDER=hotfix
+		PATCH_FILE=liferay-$1.zip
 	elif [[ "$1" == hotfix-*-7010 ]]; then
 		PATCH_FOLDER=hotfix
 		PATCH_FILE=liferay-$1.zip
 	elif [[ "$1" == hotfix-* ]]; then
 		PATCH_FOLDER=hotfix
 		PATCH_FILE=liferay-$1-7010.zip
+	elif [[ "$1" == liferay-fix-pack-portal-* ]]; then
+		PATCH_FOLDER=portal
+
+		if [[ "$1" == *.zip ]]; then
+			PATCH_FILE=$1
+		else
+			PATCH_FILE=$1.zip
+		fi
+	elif [[ "$1" == portal-* ]]; then
+		PATCH_FOLDER=portal
+
+		if [[ "$1" == *.zip ]]; then
+			PATCH_FILE=liferay-fix-pack-$1
+		else
+			PATCH_FILE=liferay-fix-pack-$1.zip
+		fi
+	elif [[ "$1" == de-* ]]; then
+		PATCH_FOLDER=de
+		PATCH_FILE=liferay-fix-pack-$1-7010.zip
 	elif [[ "$1" == liferay-fix-pack-* ]]; then
 		PATCH_FOLDER=de
 
@@ -273,12 +300,13 @@ getpatch() {
 		return 0
 	fi
 
-	local REQUEST_URL="$LIFERAY_FILES_MIRROR/private/ee/fix-packs/7.0.10/${PATCH_FOLDER}/${PATCH_FILE}"
+	local RELEASE_ID_SHORT=$(echo "$RELEASE_ID" | cut -d'.' -f 1,2,3)
+	local REQUEST_URL="$LIFERAY_FILES_MIRROR/private/ee/fix-packs/${RELEASE_ID_SHORT}/${PATCH_FOLDER}/${PATCH_FILE}"
 
 	echo "Attempting to download ${REQUEST_URL}"
 	curl -o patches/${PATCH_FILE} "${REQUEST_URL}"
 
-	if [[ "$PATCH_FILE" == liferay-hotfix-* ]]; then
+	if [[ "$PATCH_FILE" == liferay-hotfix-*-7010.zip ]]; then
 		local NEEDED_DE_VERSION=$(unzip -c patches/${PATCH_FILE} fixpack_documentation.xml | grep requirements | grep -o 'de=[0-9]*' | cut -d'=' -f 2)
 
 		if [ "" != "${NEEDED_DE_VERSION}" ]; then
@@ -293,7 +321,13 @@ getpatchingtool() {
 	local REQUEST_URL=${LIFERAY_FILES_MIRROR}/private/ee/fix-packs/patching-tool/
 
 	echo "Checking for latest patching tool at ${REQUEST_URL}"
-	local PATCHING_TOOL_VERSION=$(curl $REQUEST_URL | grep -o '<a href="patching-tool-2\.[^"]*' | cut -d'"' -f 2 | grep -F internal | sort | tail -1)
+	local PATCHING_TOOL_VERSION=
+
+	if [[ "$RELEASE_ID" == 7.0.10* ]]; then
+		PATCHING_TOOL_VERSION=$(curl $REQUEST_URL | grep -o '<a href="patching-tool-2\.[^"]*' | cut -d'"' -f 2 | grep -F internal | sort | tail -1)
+	else
+		PATCHING_TOOL_VERSION=$(curl $REQUEST_URL | grep -o '<a href="patching-tool-1\.[^"]*' | cut -d'"' -f 2 | grep -F internal | sort | tail -1)
+	fi
 
 	if [ -f $PATCHING_TOOL_VERSION ]; then
 		return 0
@@ -333,8 +367,19 @@ parsearg() {
 		return 0
 	fi
 
+	if [[ "$1" == 7.0.10* ]] || [[ "$1" == 6.2.10* ]]; then
+		RELEASE_ID=$1
+		return 0
+	fi
+
 	if [ "" == "$RELEASE_ID" ]; then
-		RELEASE_ID=7.0.10
+		if [[ "$1" == *-7010 ]]; then
+			RELEASE_ID=7.0.10
+		elif [[ "$1" == *-6210 ]]; then
+			RELEASE_ID=6.2.10
+		else
+			RELEASE_ID=7.0.10
+		fi
 	fi
 
 	PATCH_ID=$1
