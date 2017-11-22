@@ -1,9 +1,9 @@
 #!/bin/bash
 
-./common.sh $1
+/home/liferay/common.sh $1
 
 if [ "true" == "${IS_UPGRADE}" ]; then
-	./upgrade.sh
+	/home/liferay/upgrade.sh
 else
-	./bundle.sh
+	/home/liferay/bundle.sh
 fi
