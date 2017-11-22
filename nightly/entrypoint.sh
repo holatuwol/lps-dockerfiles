@@ -1,9 +1,9 @@
 #!/bin/bash
 
-./common.sh
+./common.sh $1
 
-if [ "upgrade" == "$1" ]; then
+if [ "true" == "${IS_UPGRADE}" ]; then
 	./upgrade.sh
 else
-	./bundle.sh $@
+	./bundle.sh
 fi
