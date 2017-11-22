@@ -25,4 +25,6 @@ COPY common.sh /home/liferay/
 COPY bundle.sh /home/liferay/
 COPY upgrade.sh /home/liferay/
 
+RUN	chmod u+x /home/liferay/*.sh
+
 ENTRYPOINT ["/home/liferay/entrypoint.sh"]
