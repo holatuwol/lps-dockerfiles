@@ -20,5 +20,8 @@ ENV LIFERAY_FILES_MIRROR http://172.16.168.221/files.liferay.com
 ENV LIFERAY_RELEASES_MIRROR http://172.16.168.221/releases.liferay.com
 
 COPY entrypoint.sh /home/liferay/
+COPY common.sh /home/liferay/
+COPY bundle.sh /home/liferay/
+COPY upgrade.sh /home/liferay/
 
 ENTRYPOINT ["/home/liferay/entrypoint.sh"]
