@@ -1,5 +1,15 @@
 FROM openjdk:8-jdk
 
+ENV LIFERAY_HOME /opt/liferay
+ENV IS_UPGRADE false
+ENV BASE_BRANCH	master
+
+ENV BRANCH_ARCHIVE_MIRROR http://10.50.0.165/builds/branches
+ENV TAG_ARCHIVE_MIRROR http://10.50.0.165/builds/fixpacks
+
+ENV LIFERAY_FILES_MIRROR http://172.16.168.221/files.liferay.com
+ENV LIFERAY_RELEASES_MIRROR http://172.16.168.221/releases.liferay.com
+
 COPY entrypoint.sh /home/liferay/
 COPY common.sh /home/liferay/
 COPY bundle.sh /home/liferay/
@@ -16,15 +26,5 @@ RUN	apt-get update && \
 USER liferay
 
 EXPOSE 8000 8009 8080 11311
-
-ENV LIFERAY_HOME /opt/liferay
-ENV IS_UPGRADE false
-ENV BASE_BRANCH	master
-
-ENV BRANCH_ARCHIVE_MIRROR http://10.50.0.165/builds/branches
-ENV TAG_ARCHIVE_MIRROR http://10.50.0.165/builds/fixpacks
-
-ENV LIFERAY_FILES_MIRROR http://172.16.168.221/files.liferay.com
-ENV LIFERAY_RELEASES_MIRROR http://172.16.168.221/releases.liferay.com
 
 ENTRYPOINT ["/home/liferay/entrypoint.sh"]
