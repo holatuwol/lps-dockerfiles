@@ -215,7 +215,7 @@ extract() {
 		unzip -qq "${BUILD_NAME}"
 	fi
 
-	local OLD_CATALINA_HOME=$(find . -type d -name 'tomcat*')
+	local OLD_CATALINA_HOME=$(find . -type d -name 'tomcat*' | sort | head -1)
 
 	if [ "" != "$OLD_CATALINA_HOME" ]; then
 		local OLD_LIFERAY_HOME=$(dirname "$OLD_CATALINA_HOME")
