@@ -140,8 +140,10 @@ downloadbuild() {
 	fi
 
 	if [ -d /build ] && [ "" != "$(find /build -name catalina.sh)" ]; then
+		rsync -avr /build/ ${LIFERAY_HOME}/
 		return 0
 	elif [ "" != "$BUILD_NAME" ]; then
+		cp /build/$BUILD_NAME /opt/liferay
 		extract
 		return $?
 	elif [ "" != "$BASE_TAG" ]; then
