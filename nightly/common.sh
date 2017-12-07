@@ -140,7 +140,7 @@ downloadbuild() {
 	fi
 
 	if [ -d /build ] && [ "" != "$(find /build -name catalina.sh)" ]; then
-		rsync -avr /build/ ${LIFERAY_HOME}/
+		rsync -avrq /build/ ${LIFERAY_HOME}/
 		return 0
 	elif [ "" != "$BUILD_NAME" ]; then
 		cp /build/$BUILD_NAME /opt/liferay
@@ -394,6 +394,6 @@ downloadbuild
 makesymlink
 copyextras
 
-if [ -d /build ]; then
-	rsync -avr /build/ ${LIFERAY_HOME}/
+if [ -d /build ] && [ "" == "$(find /build -name catalina.sh)" ]; then
+	rsync -avrq /build/ ${LIFERAY_HOME}/
 fi
