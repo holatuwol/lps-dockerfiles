@@ -140,7 +140,7 @@ downloadbuild() {
 	fi
 
 	if [ -d /build ] && [ "" != "$(find /build -name catalina.sh)" ]; then
-		rsync -avrq /build/ ${LIFERAY_HOME}/
+		rsync -avrq --exclude 'tomcat' /build/ ${LIFERAY_HOME}/
 		return 0
 	elif [ "" != "$BUILD_NAME" ]; then
 		cp /build/$BUILD_NAME /opt/liferay
@@ -395,5 +395,9 @@ makesymlink
 copyextras
 
 if [ -d /build ] && [ "" == "$(find /build -name catalina.sh)" ]; then
-	rsync -avrq /build/ ${LIFERAY_HOME}/
+	rsync -avrq --exclude 'tomcat' /build/ ${LIFERAY_HOME}/
+
+	if [ -d /build/tomcat ]; then
+		rsync -avrq /build/tomcat/ ${LIFERAY_HOME}/tomcat/
+	fi
 fi
