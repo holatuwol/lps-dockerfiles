@@ -85,6 +85,7 @@ downloadbranchbuild() {
 	# sure to clean up past builds to not take up too much space
 
 	echo "Downloading snapshot for $SHORT_NAME ($NEW_BASELINE)"
+
 	getbuild "${BRANCH_ARCHIVE_MIRROR}/${BUILD_NAME}"
 }
 
@@ -111,11 +112,15 @@ downloadbranchmirror() {
 
 	if [ "" == "$BUILD_TIMESTAMP" ]; then
 		if [[ "$BASE_BRANCH" == ee-* ]] || [[ "$BASE_BRANCH" == *-private ]]; then
+			echo "Unable to identify build timestamp (maybe you forgot to connect to a VPN)"
 			return 0
 		fi
 
 		LIFERAY_RELEASES_MIRROR=https://releases.liferay.com
 		REQUEST_URL="$LIFERAY_RELEASES_MIRROR/portal/nightly-$BASE_BRANCH/"
+
+		echo "Identifying build timestamp via ${REQUEST_URL}"
+
 		BUILD_TIMESTAMP=$(curl -s --connect-timeout 2 $REQUEST_URL | grep -o '<a href="[0-9]*/">' | cut -d'"' -f 2 | sort | tail -1)
 
 		if [ "" == "$BUILD_TIMESTAMP" ]; then
@@ -127,13 +132,15 @@ downloadbranchmirror() {
 	BUILD_TIMESTAMP=$(echo $BUILD_TIMESTAMP | cut -d'/' -f 1)
 	BUILD_NAME="$SHORT_NAME-$BUILD_TIMESTAMP.zip"
 
-	echo "Identifying build candidate via ${REQUEST_URL}"
+	echo "Identifying build candidate (branch) via ${REQUEST_URL}"
 
 	local BUILD_CANDIDATE=$(curl -s --connect-timeout 2 $REQUEST_URL | grep -o '<a href="[^"]*tomcat-7.0-[^"]*">' | cut -d'"' -f 2 | sort | tail -1)
 
 	if [ "" == "$BUILD_CANDIDATE" ]; then
 		return 0
 	fi
+
+	echo $BUILD_CANDIDATE
 
 	REQUEST_URL="${REQUEST_URL}${BUILD_CANDIDATE}"
 
@@ -150,7 +157,7 @@ downloadbuild() {
 	fi
 
 	if [ -d /build ] && [ "" != "$(find /build -name catalina.sh)" ]; then
-		rsync -avrq --exclude 'tomcat' /build/ ${LIFERAY_HOME}/
+		rsync -avrq --exclude=tomcat /build/ ${LIFERAY_HOME}/
 		return 0
 	elif [ "" != "$BUILD_NAME" ]; then
 		cp /build/$BUILD_NAME /opt/liferay
@@ -185,11 +192,25 @@ downloadreleasebuild() {
 		REQUEST_URL="$LIFERAY_RELEASES_MIRROR/portal/${RELEASE_ID}/"
 	fi
 
-	echo "Identifying build candidate via ${REQUEST_URL}"
+	echo "Identifying build candidate (release) via ${REQUEST_URL}"
 
+	BUILD_NAME=${RELEASE_ID}.zip
 	local BUILD_CANDIDATE=$(curl -s --connect-timeout 2 $REQUEST_URL | grep -o '<a href="[^"]*tomcat-[^"]*.zip">' | grep -vF 'jre' | cut -d'"' -f 2 | sort | tail -1)
 
 	if [ "" == "$BUILD_CANDIDATE" ]; then
+		echo "Unable to identify build candidate (maybe you forgot to connect to a VPN)"
+		return 0
+	fi
+
+	echo $BUILD_CANDIDATE
+
+	if [ -f /release/${BUILD_CANDIDATE} ]; then
+		echo "Using already downloaded ${BUILD_CANDIDATE}"
+
+		if [ ! -f ${LIFERAY_HOME}/${BUILD_CANDIDATE} ]; then
+			cp /release/${BUILD_CANDIDATE} ${LIFERAY_HOME}/${BUILD_NAME}
+		fi
+
 		return 0
 	fi
 
@@ -199,8 +220,11 @@ downloadreleasebuild() {
 
 	echo "Downloading $RELEASE_ID release (used for patching)"
 
-	BUILD_NAME=${RELEASE_ID}.zip
 	getbuild $REQUEST_URL $BUILD_NAME
+
+	if [ -d /release ]; then
+		cp ${BUILD_NAME} /release/${BUILD_CANDIDATE}
+	fi
 }
 
 downloadtag() {
@@ -253,7 +277,18 @@ getbuild() {
 		LOCAL_NAME=$2
 	fi
 
-	echo "Attempting to download $1"
+	if [ -f "${LIFERAY_HOME}/${LOCAL_NAME}" ]; then
+		echo "Already downloaded ${LOCAL_NAME}"
+		return 0
+	fi
+
+	if [ -f "/build/${LOCAL_NAME}" ]; then
+		cp "/build/${LOCAL_NAME}" "${LIFERAY_HOME}/${LOCAL_NAME}"
+		echo "Already downloaded ${LOCAL_NAME}"
+		return 0
+	fi
+
+	echo "Attempting to download $1 to ${LOCAL_NAME}"
 
 	curl -o ${LIFERAY_HOME}/${LOCAL_NAME} "$1"
 }
@@ -415,7 +450,7 @@ makesymlink
 copyextras
 
 if [ -d /build ] && [ "" == "$(find /build -name catalina.sh)" ]; then
-	rsync -avrq --exclude 'tomcat' /build/ ${LIFERAY_HOME}/
+	rsync -avrq --exclude=tomcat /build/ ${LIFERAY_HOME}/
 
 	if [ -d /build/tomcat ]; then
 		rsync -avrq /build/tomcat/ ${LIFERAY_HOME}/tomcat/
