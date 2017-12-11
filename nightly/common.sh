@@ -1,8 +1,13 @@
 #!/bin/bash
 
 copyextras() {
-	if [ -d "${LIFERAY_HOME}/drivers" ]; then
-		rsync -av "${LIFERAY_HOME}/drivers/" "${LIFERAY_HOME}/tomcat/lib/ext/"
+	if [ -d "/build/drivers" ]; then
+		rsync -av "/build/drivers/" "${LIFERAY_HOME}/tomcat/lib/ext/"
+	fi
+
+	if [ "" == "$RELEASE_ID" ] || [[ 10 -lt $(echo "$RELEASE_ID" | cut -d'.' -f 3 | cut -d'-' -f 1) ]]; then
+		echo "Not an EE release, so patches will not be installed"
+		return 0
 	fi
 
 	cd "${LIFERAY_HOME}"
@@ -16,22 +21,27 @@ copyextras() {
 		cd -
 	fi
 
-	if [ -d "${LIFERAY_HOME}/patches" ]; then
-		rsync -av "${LIFERAY_HOME}/patches/" "${LIFERAY_HOME}/patching-tool/patches/"
-
-		cd "${LIFERAY_HOME}/patching-tool"
-		./patching-tool.sh auto-discovery .. | grep -F '=' | tee test.properties
-
-		if [ ! -f default.properties ]; then
-			mv test.properties default.properties
-		else
-			rm test.properties
-		fi
-
-		echo 'auto.update.plugins=true' >> default.properties
-		./patching-tool.sh install
-		cd -
+	if [ -d "/build/patches" ]; then
+		mkdir -p "${LIFERAY_HOME}/patches"
+		rsync -av "/build/patches/" "${LIFERAY_HOME}/patches/"
 	fi
+
+	if [ -d "${LIFERAY_HOME}/patches" ]; then
+		rsync -av "/${LIFERAY_HOME}/patches/" "${LIFERAY_HOME}/patching-tool/patches/"
+	fi
+
+	cd "${LIFERAY_HOME}/patching-tool"
+	./patching-tool.sh auto-discovery .. | grep -F '=' | tee test.properties
+
+	if [ ! -f default.properties ]; then
+		mv test.properties default.properties
+	else
+		rm test.properties
+	fi
+
+	echo 'auto.update.plugins=true' >> default.properties
+	./patching-tool.sh install
+	cd -
 }
 
 downloadbranch() {
@@ -299,6 +309,16 @@ getpatch() {
 	fi
 
 	if [ "" == "$PATCH_FILE" ]; then
+		echo "Unable to determine patch file from $1"
+		return 0
+	fi
+
+	if [ -f patches/${PATCH_FILE} ]; then
+		echo "Using existing patch file ${PATCH_FILE}"
+		return 0
+	fi
+
+	if [ -f patches/${PATCH_FILE} ]; then
 		return 0
 	fi
 
