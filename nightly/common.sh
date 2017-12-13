@@ -1,5 +1,47 @@
 #!/bin/bash
 
+checkservicepack() {
+	if [ "" != "${RELEASE_ID}" ]; then
+		echo "Already identified release as ${RELEASE_ID}"
+		return 0
+	fi
+
+	if [ "" == "${PATCH_ID}" ]; then
+		return 0
+	fi
+
+	echo "Checking service pack for ${PATCH_ID}"
+
+	declare -A SERVICE_PACKS
+
+	SERVICE_PACKS[portal-45]=6.2.10.12
+	SERVICE_PACKS[portal-63]=6.2.10.13
+	SERVICE_PACKS[portal-69]=6.2.10.14
+	SERVICE_PACKS[portal-77]=6.2.10.15
+	SERVICE_PACKS[portal-114]=6.2.10.16
+	SERVICE_PACKS[portal-121]=6.2.10.17
+	SERVICE_PACKS[portal-128]=6.2.10.18
+	SERVICE_PACKS[portal-138]=6.2.10.19
+	SERVICE_PACKS[portal-148]=6.2.10.20
+	SERVICE_PACKS[portal-154]=6.2.10.21
+
+	SERVICE_PACKS[de-7]=7.0.10.1
+	SERVICE_PACKS[de-12]=7.0.10.2
+	SERVICE_PACKS[de-14]=7.0.10.3
+	SERVICE_PACKS[de-22]=7.0.10.4
+	SERVICE_PACKS[de-30]=7.0.10.5
+	SERVICE_PACKS[de-32]=7.0.10.6
+
+	if [ "" != "${SERVICE_PACKS[${PATCH_ID}]}" ]; then
+		RELEASE_ID=${SERVICE_PACKS[${PATCH_ID}]}
+		PATCH_ID=
+	elif [[ "${PATCH_ID}" == *-7010 ]]; then
+		RELEASE_ID=7.0.10
+	elif [[ "${PATCH_ID}" == *-6210 ]]; then
+		RELEASE_ID=6.2.10
+	fi
+}
+
 copyextras() {
 	if [ -d "/build/drivers" ]; then
 		rsync -av "/build/drivers/" "${LIFERAY_HOME}/tomcat/lib/ext/"
@@ -10,9 +52,15 @@ copyextras() {
 		return 0
 	fi
 
-	cd "${LIFERAY_HOME}"
-	getpatchingtool
-	cd -
+	if [ ! -f ${LIFERAY_HOME}/patching-tool/default.properties ]; then
+		cd "${LIFERAY_HOME}"
+		getpatchingtool
+		cd -
+
+		cd "${LIFERAY_HOME}/patching-tool"
+		./patching-tool.sh auto-discovery .. | grep -F '=' | tee default.properties
+		cd -
+	fi
 
 	if [ "" != "$PATCH_ID" ]; then
 		cd "${LIFERAY_HOME}"
@@ -31,14 +79,6 @@ copyextras() {
 	fi
 
 	cd "${LIFERAY_HOME}/patching-tool"
-	./patching-tool.sh auto-discovery .. | grep -F '=' | tee test.properties
-
-	if [ ! -f default.properties ]; then
-		mv test.properties default.properties
-	else
-		rm test.properties
-	fi
-
 	echo 'auto.update.plugins=true' >> default.properties
 	./patching-tool.sh install
 	cd -
@@ -429,22 +469,13 @@ parsearg() {
 		return 0
 	fi
 
-	if [ "" == "$RELEASE_ID" ]; then
-		if [[ "$1" == *-7010 ]]; then
-			RELEASE_ID=7.0.10
-		elif [[ "$1" == *-6210 ]]; then
-			RELEASE_ID=6.2.10
-		else
-			RELEASE_ID=7.0.10
-		fi
-	fi
-
 	PATCH_ID=$1
 }
 
 # Download and unzip the build
 
 parsearg $1
+checkservicepack
 downloadbuild
 makesymlink
 copyextras
