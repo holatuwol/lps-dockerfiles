@@ -5,6 +5,10 @@ Initial Setup
 
 1. Clone this repository.
 
+.. code-block:: bash
+
+	git clone git@github.com git@github.com:holatuwol/lps-dockerfiles.git
+
 2. Update the environment variables in Dockerfile to reflect your local office's internal mirrors. The default values are for Liferay's Diamond Bar office.
 
 .. code-block:: text
@@ -18,11 +22,20 @@ Initial Setup
 	ENV LIFERAY_FILES_MIRROR http://172.16.168.221/files.liferay.com
 	ENV LIFERAY_RELEASES_MIRROR http://172.16.168.221/releases.liferay.com
 
-3. Navigate to the folder within your local computer and run the following command to create a local image named ``liferay-nightly-build``.
+3. Navigate to the folder within your local computer.
 
 .. code-block:: bash
 
-	docker build /path/to/repository/nightly -t liferay-nightly-build
+	cd /path/to/lps-dockerfiles
+
+ 4. Run the following command to create local images named ``mcd-nightly-jdk7`` and ``mcd-nightly-jdk8``.
+
+.. code-block:: bash
+
+	cd nightly-jdk7
+	./build.sh
+	cd ../nightly-jdk8
+	./build.sh
 
 Basic Usage
 -----------
