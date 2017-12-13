@@ -223,7 +223,7 @@ downloadreleasebuild() {
 	getbuild $REQUEST_URL $BUILD_NAME
 
 	if [ -d /release ]; then
-		cp ${BUILD_NAME} /release/${BUILD_CANDIDATE}
+		cp ${LIFERAY_HOME}/${BUILD_NAME} /release/${BUILD_CANDIDATE}
 	fi
 }
 
