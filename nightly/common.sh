@@ -152,7 +152,7 @@ downloadbranchmirror() {
 }
 
 downloadbuild() {
-	if [ -h ${LIFERAY_HOME}/tomcat ]; then
+	if [ "" != "$(find /opt/liferay -name catalina.sh)" ]; then
 		return 0
 	fi
 
