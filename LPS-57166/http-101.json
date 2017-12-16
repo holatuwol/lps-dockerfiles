@@ -1,0 +1,10 @@
+{
+  /*
+    Generic service definition that applies to http/https urls
+    that wish to register with CAS for authentication.
+  */
+  "@class" : "org.apereo.cas.services.RegexRegisteredService",
+  "serviceId" : "^https?://.*",
+  "name" : "http",
+  "id" : 101,
+}
