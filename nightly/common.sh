@@ -47,9 +47,11 @@ copyextras() {
 		rsync -av "/build/drivers/" "${LIFERAY_HOME}/tomcat/lib/ext/"
 	fi
 
-	if [ "" == "$RELEASE_ID" ] || [[ 10 -lt $(echo "$RELEASE_ID" | cut -d'.' -f 3 | cut -d'-' -f 1) ]]; then
-		echo "Not an EE release, so patches will not be installed"
-		return 0
+	if [ ! -d /build/patches ]; then
+		if [ "" == "$RELEASE_ID" ] || [[ 10 -lt $(echo "$RELEASE_ID" | cut -d'.' -f 3 | cut -d'-' -f 1) ]]; then
+			echo "Not an EE release, so patches will not be installed"
+			return 0
+		fi
 	fi
 
 	if [ ! -f ${LIFERAY_HOME}/patching-tool/default.properties ]; then
