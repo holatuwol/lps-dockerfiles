@@ -474,6 +474,25 @@ parsearg() {
 	PATCH_ID=$1
 }
 
+setup_wizard() {
+	if [ -f ${HOME}/portal-setup-wizard.properties ] || [ -f ${LIFERAY_HOME}/portal-setup-wizard.properties ]; then
+		return 0
+	fi
+
+	if [ -f ${LIFERAY_HOME}/portal-ext.properties ] && [ "" != "$(grep -F setup.wizard.enabled ${LIFERAY_HOME}/portal-ext.properties)" ]; then
+		return 0
+	fi
+
+	echo "
+setup.wizard.enabled=false
+users.reminder.queries.enabled=false
+
+default.admin.screen.name=test
+default.admin.password=$(cat /dev/urandom | tr -dc 'a-zA-Z0-9' | fold -w 30 | head -n 1)
+" > ${HOME}/portal-setup-wizard.properties
+}
+
+
 # Download and unzip the build
 
 parsearg $1
@@ -481,6 +500,7 @@ checkservicepack
 downloadbuild
 makesymlink
 copyextras
+setup_wizard
 
 if [ -d /build ] && [ "" == "$(find /build -name catalina.sh)" ]; then
 	rsync -avrq --exclude=tomcat /build/ ${LIFERAY_HOME}/
