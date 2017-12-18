@@ -28,7 +28,7 @@ Initial Setup
 
 	cd /path/to/lps-dockerfiles
 
- 4. Run the following command to create local images named ``mcd-nightly-jdk7`` and ``mcd-nightly-jdk8``.
+4. Run the following command to create local images named ``mcd-nightly-jdk7`` and ``mcd-nightly-jdk8``.
 
 .. code-block:: bash
 
@@ -44,7 +44,7 @@ Basic Usage
 
 .. code-block:: bash
 
-	docker run --name LESATICKET-ID liferay-nightly-build
+	docker run --name LESATICKET-ID mcd-nightly-jdk8
 
 2. You can access the Tomcat instance by finding the IP address, which can be done with the following command.
 
@@ -59,7 +59,7 @@ If you mount any of your local folders to ``/build``, the script will use ``rsyn
 
 .. code-block:: bash
 
-	docker run --name LESATICKET-ID --volume /path/to/local/folder:/build liferay-nightly-build
+	docker run --name LESATICKET-ID --volume /path/to/local/folder:/build mcd-nightly-jdk8
 
 The initialization script will use files located in this ``/build`` folder in order to provide the following capabilities:
 
@@ -79,8 +79,8 @@ The default behavior if no special environment variables are set is to attempt t
 
 .. code-block:: bash
 
-	docker run --name LESATICKET-ID -e BASE_BRANCH=7.0.x liferay-nightly-build
-	docker run --name LESATICKET-ID liferay-nightly-build 7.0.x
+	docker run --name LESATICKET-ID -e BASE_BRANCH=7.0.x mcd-nightly-jdk8
+	docker run --name LESATICKET-ID mcd-nightly-jdk8 7.0.x
 
 Run a Release
 ~~~~~~~~~~~~~
@@ -89,8 +89,8 @@ You can specify a release build by provide the ``RELEASE_ID`` environment variab
 
 .. code-block:: bash
 
-	docker run --name LESATICKET-ID -e RELEASE_ID=7.0.10.6 liferay-nightly-build
-	docker run --name LESATICKET-ID liferay-nightly-build 7.0.10.6
+	docker run --name LESATICKET-ID -e RELEASE_ID=7.0.10.6 mcd-nightly-jdk8
+	docker run --name LESATICKET-ID mcd-nightly-jdk8 7.0.10.6
 
 Apply a Fix Pack or Hotfix
 ~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -101,8 +101,8 @@ Alternately, you can provide the name of the patch as a ``PATCH_ID`` environment
 
 .. code-block:: bash
 
-	docker run --name LESATICKET-ID -e PATCH_ID=de-1 liferay-nightly-build
-	docker run --name LESATICKET-ID liferay-nightly-build de-1
+	docker run --name LESATICKET-ID -e PATCH_ID=de-1 mcd-nightly-jdk8
+	docker run --name LESATICKET-ID mcd-nightly-jdk8 de-1
 
 Run a Fix Pack (No License)
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -111,7 +111,7 @@ If you wish to run a fix pack built from source, you can specify a DE fix pack b
 
 .. code-block:: bash
 
-	docker run --name LESATICKET-ID -e BASE_TAG=fix-pack-de-1-7010 liferay-nightly-build
+	docker run --name LESATICKET-ID -e BASE_TAG=fix-pack-de-1-7010 mcd-nightly-jdk8
 
 Run a Local Build
 ~~~~~~~~~~~~~~~~~
@@ -120,4 +120,4 @@ If a Tomcat bundle already exists in the folder specified by the ``build`` folde
 
 .. code-block:: bash
 
-	docker run --name LESATICKET-ID --volume /path/to/local/liferay/home:/build liferay-nightly-build
+	docker run --name LESATICKET-ID --volume /path/to/local/liferay/home:/build mcd-nightly-jdk8
