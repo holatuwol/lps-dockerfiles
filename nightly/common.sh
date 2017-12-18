@@ -357,10 +357,12 @@ getpatch() {
 	elif [[ "$1" == portal-* ]]; then
 		PATCH_FOLDER=portal
 
-		if [[ "$1" == *.zip ]]; then
+		if [[ "$1" == *-6210.zip ]]; then
 			PATCH_FILE=liferay-fix-pack-$1
-		else
+		elif [[ "$1" == *-6210 ]]; then
 			PATCH_FILE=liferay-fix-pack-$1.zip
+		else
+			PATCH_FILE=liferay-fix-pack-$1-6210.zip
 		fi
 	elif [[ "$1" == de-* ]]; then
 		PATCH_FOLDER=de
