@@ -13,7 +13,7 @@ ENV LIFERAY_FILES_MIRROR http://172.16.168.221/files.liferay.com
 ENV LIFERAY_RELEASES_MIRROR http://172.16.168.221/releases.liferay.com
 
 RUN	apt-get update && \
-	apt-get install -y --no-install-recommends curl net-tools rsync unzip && \
+	apt-get install -y --no-install-recommends curl net-tools rsync unzip vim && \
 	useradd -ms /bin/bash liferay && \
 	mkdir /opt/liferay && \
 	chown liferay:liferay /opt/liferay
