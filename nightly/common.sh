@@ -494,6 +494,46 @@ default.admin.password=$(cat /dev/urandom | tr -dc 'a-zA-Z0-9' | fold -w 30 | he
 " > ${HOME}/portal-setup-wizard.properties
 }
 
+tcp_cluster() {
+	if [ -f "${LIFERAY_HOME}/tcp.xml" ] && [ ! -f "${LIFERAY_HOME}/tcp.xml.tcpping" ]; then
+		echo "Using provided tcp.xml"
+		return 0
+	fi
+
+	cd ${LIFERAY_HOME}
+
+	if [ -f tcp.xml.tcpping ]; then
+		echo "Using already extracted tcp.xml"
+		rm -f tcp.xml tcp.xml.jdbcping
+		mv tcp.xml.tcpping tcp.xml
+	elif [ -d 'osgi/marketplace/Liferay Foundation.lpkg' ]; then
+		echo "Extracting tcp.xml from Liferay Foundation.lpkg"
+		unzip -qq -j "osgi/marketplace/Liferay Foundation.lpkg" 'com.liferay.portal.cluster.multiple*.jar'
+		unzip -qq -j com.liferay.portal.cluster.multiple*.jar 'lib/jgroups*'
+		rm com.liferay.portal.cluster.multiple*.jar
+		unzip -qq -j jgroups*.jar tcp.xml
+		rm jgroups*.jar
+	elif [ -f osgi/portal/com.liferay.portal.cluster.multiple.jar ]; then
+		echo "Extracting tcp.xml from com.liferay.portal.cluster.multiple.jar"
+		unzip -qq -j osgi/portal/com.liferay.portal.cluster.multiple.jar 'lib/jgroups*'
+		unzip -qq -j jgroups*.jar tcp.xml
+		rm jgroups*.jar
+	else
+		echo "Extracting tcp.xml from WEB-INF/lib/jgroups.jar"
+		unzip -qq -j tomcat*/webapps/ROOT/WEB-INF/lib/jgroups.jar tcp.xml
+	fi
+
+	echo "Replacing TCPPING with JDBC_PING"
+
+	sed -n '1,/<TCPPING/p' tcp.xml | sed '$d' > tcp.xml.jdbcping
+	echo '<JDBC_PING datasource_jndi_name="java:comp/env/jdbc/LiferayPool" />' >> tcp.xml.jdbcping
+	sed -n '/<MERGE/,$p' tcp.xml >> tcp.xml.jdbcping
+
+	mv tcp.xml tcp.xml.tcpping
+	cp -f tcp.xml.jdbcping tcp.xml
+
+	cd -
+}
 
 # Download and unzip the build
 
