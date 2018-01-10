@@ -41,3 +41,5 @@ Steps for 7.0.x
 13. Open a New Incognito window and click on the Sign In link
 14. Sign in as the default CAS user, username ``casuser``, password ``Mellon``
 15. Accept the Terms of Use
+
+**Note**: After the error, you will need to delete the casuser and recreate them in order to reproduce the error again. If you are signed out and need to login as the test user, you will need to access the login portlet directly via http://localhost:8080/?p_p_id=com_liferay_login_web_portlet_LoginPortlet&p_p_state=maximized
