@@ -1,3 +1,5 @@
+https://issues.liferay.com/browse/LPS-76332
+
 Steps for 7.0.x
 ---------------
 
