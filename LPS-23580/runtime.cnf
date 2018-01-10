@@ -1,0 +1,7 @@
+[mysqld]
+innodb-file-format    = Barracuda
+innodb-file-per-table
+innodb-large-prefix
+
+character-set-server  = utf8mb4
+collation-server      = utf8mb4_bin
