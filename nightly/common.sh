@@ -32,13 +32,51 @@ checkservicepack() {
 	SERVICE_PACKS[de-30]=7.0.10.5
 	SERVICE_PACKS[de-32]=7.0.10.6
 
-	if [ "" != "${SERVICE_PACKS[${PATCH_ID}]}" ]; then
-		RELEASE_ID=${SERVICE_PACKS[${PATCH_ID}]}
+	if [[ ${PATCH_ID} == liferay-fix-pack-portal-* ]]; then
+		closestservicepack $(echo "${PATCH_ID}" | cut -d'-' -f 4-)
+	elif [[ ${PATCH_ID} == liferay-fix-pack-* ]]; then
+		closestservicepack $(echo "${PATCH_ID}" | cut -d'-' -f 4,5)
+	else
+		closestservicepack ${PATCH_ID}
+	fi
+}
+
+closestservicepack() {
+	RELEASE_ID=${SERVICE_PACKS[${1}]}
+
+	if [ "" != "${RELEASE_ID}" ]; then
 		PATCH_ID=
-	elif [[ "${PATCH_ID}" == *-7010 ]]; then
+		return 0
+	fi
+
+	if [[ "${1}" == portal-* ]]; then
+		for id in $(seq $(echo "${1}" | cut -d'-' -f 2) | tac); do
+			RELEASE_ID=${SERVICE_PACKS[portal-${id}]}
+
+			if [ "" != "${RELEASE_ID}" ]; then
+				return 0
+			fi
+		done
+	fi
+
+	if [[ "${1}" == de-* ]]; then
+		for id in $(seq $(echo "${1}" | cut -d'-' -f 2) | tac); do
+			RELEASE_ID=${SERVICE_PACKS[de-${id}]}
+
+			if [ "" != "${RELEASE_ID}" ]; then
+				return 0
+			fi
+		done
+	fi
+
+	if [[ "${1}" == *-7010 ]]; then
 		RELEASE_ID=7.0.10
-	elif [[ "${PATCH_ID}" == *-6210 ]]; then
+		return 0
+	fi
+
+	if [[ "${1}" == *-6210 ]]; then
 		RELEASE_ID=6.2.10
+		return 0
 	fi
 }
 
