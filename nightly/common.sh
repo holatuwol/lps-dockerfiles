@@ -499,21 +499,31 @@ parsearg() {
 		return 0
 	fi
 
+	if [ "" != "${BUILD_NAME}" ] || [ "" != "${BASE_TAG}" ]; then
+		return 0
+	fi
+
+	if [ "" != "${BASE_BRANCH}" ] && [ "master" != "${BASE_BRANCH}" ]; then
+		return 0
+	fi
+
 	if [[ "$1" == *.x ]] || [ "$1" == "master" ]; then
 		BASE_BRANCH=$1
 		return 0
 	fi
 
-	if [[ "$1" == fix-pack-* ]]; then
-		BASE_TAG=$1
-		return 0
-	fi
-
-	if [[ "$1" == 7.0.10* ]] || [[ "$1" == 6.2.10* ]]; then
+	if [[ "$1" == 7.0.10.* ]] || [[ "$1" == 6.2.10.* ]]; then
 		RELEASE_ID=$1
 		return 0
 	fi
 
+	BASE_TAG=$(curl -s --connect-timeout 2 $TAG_ARCHIVE_MIRROR/tags-ce.txt | grep -F "$1")
+
+	if [ "" != "${BASE_TAG}" ] && [[ 1 == $(echo -n "${BASE_TAG}" | grep -c '^') ]]; then
+		return 0
+	fi
+
+	BASE_TAG=
 	PATCH_ID=$1
 }
 
