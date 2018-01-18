@@ -524,7 +524,12 @@ parsearg() {
 	fi
 
 	BASE_TAG=
-	PATCH_ID=$1
+
+	if [[ $1 == http* ]]; then
+		PATCH_ID=$(echo $1 | rev | cut -d'/' -f 1 | rev | cut -d'.' -f 1)
+	else
+		PATCH_ID=$1
+	fi
 }
 
 setup_wizard() {
