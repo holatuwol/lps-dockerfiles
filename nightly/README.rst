@@ -32,9 +32,7 @@ Initial Setup
 
 .. code-block:: bash
 
-	cd nightly-jdk7
-	./build.sh
-	cd ../nightly-jdk8
+	cd nightly
 	./build.sh
 
 Basic Usage
