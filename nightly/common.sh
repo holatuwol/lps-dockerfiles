@@ -546,7 +546,7 @@ setup.wizard.enabled=false
 users.reminder.queries.enabled=false
 
 default.admin.screen.name=test
-default.admin.password=$(cat /dev/urandom | tr -dc 'a-zA-Z0-9' | fold -w 30 | head -n 1)
+default.admin.password=${LIFERAY_PASSWORD}
 " > ${HOME}/portal-setup-wizard.properties
 }
 
@@ -590,6 +590,12 @@ tcp_cluster() {
 
 	cd -
 }
+
+# Set a random password
+
+if [ "" == "${LIFERAY_PASSWORD}" ]; then
+	LIFERAY_PASSWORD=$(cat /dev/urandom | tr -dc 'a-zA-Z0-9' | fold -w 30 | head -n 1)
+fi
 
 # Download and unzip the build
 
