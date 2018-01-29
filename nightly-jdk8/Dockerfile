@@ -15,8 +15,8 @@ ENV LIFERAY_RELEASES_MIRROR http://172.16.168.221/releases.liferay.com
 RUN	apt-get update && \
 	apt-get install -y --no-install-recommends curl net-tools rsync unzip vim && \
 	useradd -ms /bin/bash liferay && \
-	mkdir /opt/liferay && \
-	chown liferay:liferay /opt/liferay
+	mkdir -p /opt/liferay/data && \
+	chown -R liferay:liferay /opt/liferay
 
 COPY entrypoint.sh /home/liferay/
 COPY common.sh /home/liferay/
