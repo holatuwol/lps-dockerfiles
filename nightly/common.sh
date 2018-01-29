@@ -45,7 +45,6 @@ closestservicepack() {
 	RELEASE_ID=${SERVICE_PACKS[${1}]}
 
 	if [ "" != "${RELEASE_ID}" ]; then
-		PATCH_ID=
 		return 0
 	fi
 
@@ -339,10 +338,12 @@ extract() {
 
 		if [ "." != "$OLD_LIFERAY_HOME" ]; then
 			for file in $(find $OLD_LIFERAY_HOME -mindepth 1 -maxdepth 1); do
-				mv $file .
+				if [ ! -e "$(basename $file)" ]; then
+					mv $file .
+				fi
 			done
 
-			rmdir $OLD_LIFERAY_HOME
+			rm -rf $OLD_LIFERAY_HOME
 		fi
 	fi
 
