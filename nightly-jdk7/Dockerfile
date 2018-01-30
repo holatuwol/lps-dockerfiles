@@ -8,6 +8,7 @@ ENV BASE_BRANCH	master
 
 ENV BRANCH_ARCHIVE_MIRROR http://10.50.0.165/builds/branches
 ENV TAG_ARCHIVE_MIRROR http://10.50.0.165/builds/fixpacks
+ENV LICENSE_MIRROR http://10.50.0.165/licenses
 
 ENV LIFERAY_FILES_MIRROR http://172.16.168.221/files.liferay.com
 ENV LIFERAY_RELEASES_MIRROR http://172.16.168.221/releases.liferay.com
