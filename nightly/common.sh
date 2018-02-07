@@ -552,10 +552,12 @@ setup_wizard() {
 
 	echo "
 setup.wizard.enabled=false
+web.server.display.node=true
 users.reminder.queries.enabled=false
 
 default.admin.screen.name=test
 default.admin.password=${LIFERAY_PASSWORD}
+
 " > ${HOME}/portal-setup-wizard.properties
 }
 
