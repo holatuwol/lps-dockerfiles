@@ -516,6 +516,16 @@ parsearg() {
 		return 0
 	fi
 
+	if [ "" != "${BRANCH_ARCHIVE_MIRROR}" ]; then
+		SHORT_NAME=$(echo $1 | sed 's/ee-//g' | tr -d '.')
+		IS_BRANCH=$(curl -s --connect-timeout 2 $BRANCH_ARCHIVE_MIRROR/ | grep -o '<a href="'${SHORT_NAME}'-[0-9]*.tar.gz">' | cut -d'"' -f 2 | sort | tail -1)
+
+		if [ "" != "${IS_BRANCH}" ]; then
+			BASE_BRANCH=${SHORT_NAME}
+			return 0
+		fi
+	fi
+
 	if [[ "$1" == *.x ]] || [ "$1" == "master" ]; then
 		BASE_BRANCH=$1
 		return 0
