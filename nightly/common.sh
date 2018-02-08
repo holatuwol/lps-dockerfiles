@@ -100,9 +100,9 @@ copyextras() {
 		cd "${LIFERAY_HOME}/patching-tool"
 		rm -f default.properties
 
-		mv ../tomcat .
+		mv ../tomcat /tmp
 		./patching-tool.sh default auto-discovery ..
-		mv tomcat ..
+		mv /tmp/tomcat ..
 
 		touch .uptodate
 		cd -
