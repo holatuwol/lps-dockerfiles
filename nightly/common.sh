@@ -563,6 +563,15 @@ setup_wizard() {
 		return 0
 	fi
 
+	local RELEASE_INFO_JAR=${LIFERAY_HOME}/tomcat/lib/ext/portal-kernel.jar
+
+	if [ ! -f ${RELEASE_INFO_JAR} ]; then
+		RELEASE_INFO_JAR=${LIFERAY_HOME}/tomcat/lib/ext/portal-service.jar
+	fi
+
+	local LP_VERSION=$(groovy -classpath ${RELEASE_INFO_JAR} -e 'print com.liferay.portal.kernel.util.ReleaseInfo.getVersion()')
+	local LP_MAJOR_VERSION=$(echo "${LP_VERSION}" | cut -d'.' -f 1,2)
+
 	echo "
 setup.wizard.enabled=false
 web.server.display.node=true
@@ -571,6 +580,8 @@ users.reminder.queries.enabled=false
 default.admin.screen.name=test
 default.admin.password=${LIFERAY_PASSWORD}
 
+lp.version=${LP_VERSION}
+lp.version.major=${LP_MAJOR_VERSION}
 " > ${HOME}/portal-setup-wizard.properties
 }
 
