@@ -81,7 +81,7 @@ closestservicepack() {
 
 copyextras() {
 	if [ -d "/build/drivers" ]; then
-		rsync -av "/build/drivers/" "${LIFERAY_HOME}/tomcat/lib/ext/"
+		rsync -aq "/build/drivers/" "${LIFERAY_HOME}/tomcat/lib/ext/"
 	fi
 
 	if [ ! -d /build/patches ] && [ ! -d "${LIFERAY_HOME}/patching-tool" ]; then
@@ -238,11 +238,10 @@ downloadbranchmirror() {
 }
 
 downloadbuild() {
-	if [ -d /build ]; then
+	if [ "" != "$(find /build -name catalina.sh)" ]; then
 		rsync -arq --exclude=tomcat /build/ ${LIFERAY_HOME}/
-	fi
-
-	if [ "" != "$(find /opt/liferay -name catalina.sh)" ] || [ "" != "$(find /build -name catalina.sh)" ]; then
+		return 0
+	elif [ "" != "$(find /opt/liferay -name catalina.sh)" ]; then
 		return 0
 	elif [ "" != "$BUILD_NAME" ]; then
 		cp /build/$BUILD_NAME /opt/liferay
@@ -641,10 +640,10 @@ makesymlink
 copyextras
 setup_wizard
 
-if [ -d /build ] && [ "" == "$(find /build -name catalina.sh)" ]; then
+if [ -d /build ]; then
 	rsync -arq --exclude=tomcat /build/ ${LIFERAY_HOME}/
 
-	if [ -d /build/tomcat ]; then
+	if [ -d /build/tomcat ] && [ "" == "$(find /build/tomcat -name catalina.sh)" ]; then
 		rsync -arq /build/tomcat/ ${LIFERAY_HOME}/tomcat/
 	fi
 fi
