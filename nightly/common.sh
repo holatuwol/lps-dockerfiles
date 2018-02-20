@@ -647,3 +647,7 @@ if [ -d /build ]; then
 		rsync -arq /build/tomcat/ ${LIFERAY_HOME}/tomcat/
 	fi
 fi
+
+if [ -d /opt/ibm/java ]; then
+	rm -f /opt/liferay/tomcat/webapps/ROOT/WEB-INF/classes/META-INF/MANIFEST.MF
+fi
