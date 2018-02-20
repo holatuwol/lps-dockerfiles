@@ -238,7 +238,7 @@ downloadbranchmirror() {
 }
 
 downloadbuild() {
-	if [ "" != "$(find /build -name catalina.sh)" ]; then
+	if [ -d /build ] && [ "" != "$(find /build -name catalina.sh)" ]; then
 		rsync -arq --exclude=tomcat /build/ ${LIFERAY_HOME}/
 		return 0
 	elif [ "" != "$(find /opt/liferay -name catalina.sh)" ]; then
