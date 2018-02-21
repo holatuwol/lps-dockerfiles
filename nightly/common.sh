@@ -91,6 +91,18 @@ copyextras() {
 		fi
 	fi
 
+	setpatchfile ${PATCH_ID}
+
+	if [ "" == "${PATCH_FILE}" ]; then
+		echo "Unable to determine patch file for ${PATCH_ID}"
+		return 1
+	fi
+
+	if [ -f ${LIFERAY_HOME}/patching-tool/patches/${PATCH_FILE} ]; then
+		echo "Using existing patch file ${PATCH_FILE}"
+		return 0
+	fi
+
 	if [ ! -f ${LIFERAY_HOME}/patching-tool/.uptodate ]; then
 		cd "${LIFERAY_HOME}"
 		rm -rf patching-tool
@@ -388,59 +400,10 @@ getbuild() {
 }
 
 getpatch() {
-	local PATCH_FOLDER=
-	local PATCH_FILE=
-
-	if [[ "$1" == hotfix-*-6210 ]]; then
-		PATCH_FOLDER=hotfix
-		PATCH_FILE=liferay-$1.zip
-	elif [[ "$1" == hotfix-*-7010 ]]; then
-		PATCH_FOLDER=hotfix
-		PATCH_FILE=liferay-$1.zip
-	elif [[ "$1" == hotfix-* ]]; then
-		PATCH_FOLDER=hotfix
-		PATCH_FILE=liferay-$1-7010.zip
-	elif [[ "$1" == liferay-fix-pack-portal-* ]]; then
-		PATCH_FOLDER=portal
-
-		if [[ "$1" == *.zip ]]; then
-			PATCH_FILE=$1
-		else
-			PATCH_FILE=$1.zip
-		fi
-	elif [[ "$1" == portal-* ]]; then
-		PATCH_FOLDER=portal
-
-		if [[ "$1" == *-6210.zip ]]; then
-			PATCH_FILE=liferay-fix-pack-$1
-		elif [[ "$1" == *-6210 ]]; then
-			PATCH_FILE=liferay-fix-pack-$1.zip
-		else
-			PATCH_FILE=liferay-fix-pack-$1-6210.zip
-		fi
-	elif [[ "$1" == de-* ]]; then
-		PATCH_FOLDER=de
-		PATCH_FILE=liferay-fix-pack-$1-7010.zip
-	elif [[ "$1" == liferay-fix-pack-* ]]; then
-		PATCH_FOLDER=de
-
-		if [[ "$1" == *.zip ]]; then
-			PATCH_FILE=$1
-		else
-			PATCH_FILE=$1.zip
-		fi
-	elif [[ "$1" == liferay-hotfix-* ]]; then
-		PATCH_FOLDER=hotfix
-
-		if [[ "$1" == *.zip ]]; then
-			PATCH_FILE=$1
-		else
-			PATCH_FILE=$1.zip
-		fi
-	fi
+	setpatchfile $1
 
 	if [ "" == "$PATCH_FILE" ]; then
-		echo "Unable to determine patch file from $1"
+		echo "Unable to determine patch file for $1"
 		return 0
 	fi
 
@@ -550,6 +513,63 @@ parsearg() {
 		PATCH_ID=$(echo $1 | rev | cut -d'/' -f 1 | rev | cut -d'.' -f 1)
 	else
 		PATCH_ID=$1
+	fi
+}
+
+setpatchfile() {
+	if [ "" != "${PATCH_FOLDER}" ] && [ "" != "${PATCH_FILE}" ]; then
+		return 0
+	fi
+
+	PATCH_FOLDER=
+	PATCH_FILE=
+
+	if [[ "$1" == hotfix-*-6210 ]]; then
+		PATCH_FOLDER=hotfix
+		PATCH_FILE=liferay-$1.zip
+	elif [[ "$1" == hotfix-*-7010 ]]; then
+		PATCH_FOLDER=hotfix
+		PATCH_FILE=liferay-$1.zip
+	elif [[ "$1" == hotfix-* ]]; then
+		PATCH_FOLDER=hotfix
+		PATCH_FILE=liferay-$1-7010.zip
+	elif [[ "$1" == liferay-fix-pack-portal-* ]]; then
+		PATCH_FOLDER=portal
+
+		if [[ "$1" == *.zip ]]; then
+			PATCH_FILE=$1
+		else
+			PATCH_FILE=$1.zip
+		fi
+	elif [[ "$1" == portal-* ]]; then
+		PATCH_FOLDER=portal
+
+		if [[ "$1" == *-6210.zip ]]; then
+			PATCH_FILE=liferay-fix-pack-$1
+		elif [[ "$1" == *-6210 ]]; then
+			PATCH_FILE=liferay-fix-pack-$1.zip
+		else
+			PATCH_FILE=liferay-fix-pack-$1-6210.zip
+		fi
+	elif [[ "$1" == de-* ]]; then
+		PATCH_FOLDER=de
+		PATCH_FILE=liferay-fix-pack-$1-7010.zip
+	elif [[ "$1" == liferay-fix-pack-* ]]; then
+		PATCH_FOLDER=de
+
+		if [[ "$1" == *.zip ]]; then
+			PATCH_FILE=$1
+		else
+			PATCH_FILE=$1.zip
+		fi
+	elif [[ "$1" == liferay-hotfix-* ]]; then
+		PATCH_FOLDER=hotfix
+
+		if [[ "$1" == *.zip ]]; then
+			PATCH_FILE=$1
+		else
+			PATCH_FILE=$1.zip
+		fi
 	fi
 }
 
