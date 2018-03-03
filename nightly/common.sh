@@ -593,6 +593,8 @@ setup_wizard() {
 
 	echo "
 setup.wizard.enabled=false
+module.framework.properties.osgi.console=0.0.0.0:11311
+
 web.server.display.node=true
 users.reminder.queries.enabled=false
 
