@@ -597,6 +597,7 @@ module.framework.properties.osgi.console=0.0.0.0:11311
 
 web.server.display.node=true
 users.reminder.queries.enabled=false
+module.framework.properties.lpkg.index.validator.enabled=false
 
 default.admin.screen.name=test
 default.admin.password=${LIFERAY_PASSWORD}
