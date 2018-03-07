@@ -79,6 +79,26 @@ closestservicepack() {
 	fi
 }
 
+computername() {
+	if [ "" != "$(grep -F '-Denv.COMPUTERNAME=' ${LIFERAY_HOME}/tomcat/bin/setenv.sh)" ]; then
+		return 0
+	fi
+
+	if [ "" == "${RELEASE_ID}" ]; then
+		return 0
+	fi
+
+	local COMPUTERNAME="${RELEASE_ID}"
+
+	if [ "" != "${PATCH_ID}" ]; then
+		COMPUTERNAME="${PATCH_ID}"
+	fi
+
+	echo '' >> ${LIFERAY_HOME}/tomcat/bin/setenv.sh
+	echo 'CATALINA_OPTS="${CATALINA_OPTS} -Denv.COMPUTERNAME='${COMPUTERNAME}'"' >> ${LIFERAY_HOME}/tomcat/bin/setenv.sh
+	echo 'export CATALINA_OPTS' >> ${LIFERAY_HOME}/tomcat/bin/setenv.sh
+}
+
 copyextras() {
 	if [ -d "/build/drivers" ]; then
 		rsync -aq "/build/drivers/" "${LIFERAY_HOME}/tomcat/lib/ext/"
@@ -674,3 +694,5 @@ fi
 if [ -d /opt/ibm/java ]; then
 	rm -f /opt/liferay/tomcat/webapps/ROOT/WEB-INF/classes/META-INF/MANIFEST.MF
 fi
+
+computername
