@@ -537,10 +537,6 @@ parsearg() {
 }
 
 setpatchfile() {
-	if [ "" != "${PATCH_FOLDER}" ] && [ "" != "${PATCH_FILE}" ]; then
-		return 0
-	fi
-
 	PATCH_FOLDER=
 	PATCH_FILE=
 
