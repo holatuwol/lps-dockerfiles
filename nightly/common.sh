@@ -686,6 +686,17 @@ lp.version.major=${LP_MAJOR_VERSION}
 }
 
 tcp_cluster() {
+	if [ "true" != "${IS_CLUSTER}" ]; then
+		return 0
+	fi
+
+	if [ "" == "$(grep -F cluster.link.enabled= ${HOME}/portal-setup-wizard.properties)" ]; then
+		echo '' >> ${HOME}/portal-setup-wizard.properties
+		echo 'cluster.link.enabled=true' >> ${HOME}/portal-setup-wizard.properties
+		echo "cluster.link.channel.properties.control=${LIFERAY_HOME}/tcp.xml" >> ${HOME}/portal-setup-wizard.properties
+		echo "cluster.link.channel.properties.transport.0=${LIFERAY_HOME}/tcp.xml" >> ${HOME}/portal-setup-wizard.properties
+	fi
+
 	if [ -f "${LIFERAY_HOME}/tcp.xml" ] && [ ! -f "${LIFERAY_HOME}/tcp.xml.tcpping" ]; then
 		echo "Using provided tcp.xml"
 		return 0
@@ -709,19 +720,33 @@ tcp_cluster() {
 		unzip -qq -j osgi/portal/com.liferay.portal.cluster.multiple.jar 'lib/jgroups*'
 		unzip -qq -j jgroups*.jar tcp.xml
 		rm jgroups*.jar
-	else
+	elif [ -f tomcat/webapps/ROOT/WEB-INF/lib/jgroups.jar ]; then
 		echo "Extracting tcp.xml from WEB-INF/lib/jgroups.jar"
-		unzip -qq -j tomcat*/webapps/ROOT/WEB-INF/lib/jgroups.jar tcp.xml
+		unzip -qq -j tomcat/webapps/ROOT/WEB-INF/lib/jgroups.jar tcp.xml
+	else
+		echo 'Clustering code not available in this release of Liferay'
+		return 0
 	fi
 
-	echo "Replacing TCPPING with JDBC_PING"
+	cp -f tcp.xml tcp.xml.tcpping
 
-	sed -n '1,/<TCPPING/p' tcp.xml | sed '$d' > tcp.xml.jdbcping
-	echo '<JDBC_PING datasource_jndi_name="java:comp/env/jdbc/LiferayPool" />' >> tcp.xml.jdbcping
-	sed -n '/<MERGE/,$p' tcp.xml >> tcp.xml.jdbcping
+	if [ "" == "$(grep -F jgroups.tcpping.initial_hosts= ${LIFERAY_HOME}/tomcat/bin/setenv.sh)" ]; then
+		local BASE_IP=$(hostname -I | cut -d'.' -f 1,2,3)
+		local INITIAL_HOSTS=$(seq 255 | awk '{ print "'${BASE_IP}'." $1 "[7800],'${BASE_IP}'." $1 "[7801]" }' | tr '\n' ',' | sed 's/,$//g')
 
-	mv tcp.xml tcp.xml.tcpping
-	cp -f tcp.xml.jdbcping tcp.xml
+		echo '' >> ${LIFERAY_HOME}/tomcat/bin/setenv.sh
+		echo 'CATALINA_OPTS="${CATALINA_OPTS} -Djgroups.tcpping.initial_hosts='${INITIAL_HOSTS}'"' >> ${LIFERAY_HOME}/tomcat/bin/setenv.sh
+	fi
+
+	if [ -f ${LIFERAY_HOME}/portal-ext.properties ] && [ "" != "$(grep -F jdbc/LiferayPool ${LIFERAY_HOME}/portal-ext.properties | grep -vF '#')" ]; then
+		echo "Replacing TCPPING with JDBC_PING"
+
+		sed -n '1,/<TCPPING/p' tcp.xml | sed '$d' > tcp.xml.jdbcping
+		echo '<JDBC_PING datasource_jndi_name="java:comp/env/jdbc/LiferayPool" />' >> tcp.xml.jdbcping
+		sed -n '/<MERGE/,$p' tcp.xml >> tcp.xml.jdbcping
+
+		cp -f tcp.xml.jdbcping tcp.xml
+	fi
 
 	cd -
 }
@@ -754,5 +779,8 @@ if [ -d /opt/ibm/java ]; then
 fi
 
 computername
+
 create_keystore
 setup_ssl
+
+tcp_cluster
