@@ -23,6 +23,7 @@ COPY entrypoint.sh /home/liferay/
 COPY common.sh /home/liferay/
 COPY bundle.sh /home/liferay/
 COPY upgrade.sh /home/liferay/
+COPY sslconfig.cnf.base /home/liferay/
 
 RUN chown liferay:liferay /home/liferay/*.sh && \
 	chmod u+x /home/liferay/*.sh

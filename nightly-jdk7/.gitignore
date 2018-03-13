@@ -2,3 +2,4 @@ bundle.sh
 common.sh
 entrypoint.sh
 upgrade.sh
+sslconfig.cnf.base

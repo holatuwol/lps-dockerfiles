@@ -4,6 +4,7 @@ cp -f ../nightly/bundle.sh .
 cp -f ../nightly/common.sh .
 cp -f ../nightly/entrypoint.sh .
 cp -f ../nightly/upgrade.sh .
+cp -f ../nightly/sslconfig.cnf.base .
 
 IMAGE_NAME=$1
 
