@@ -639,11 +639,18 @@ setup_ssl() {
 
 	sed -n '1,/ port="8443"/p' ${CATALINA_HOME}/conf/server.xml | sed '$d' | sed '$d' > ${CATALINA_HOME}/conf/server.xml.https
 
-	sed -n '/ port="8443"/,/-->/p' ${CATALINA_HOME}/conf/server.xml | sed '$d' | sed '$d' >> ${CATALINA_HOME}/conf/server.xml.https
-	echo 'keystoreFile="'${LIFERAY_HOME}'/keystore" keystorePass="changeit"' >> ${CATALINA_HOME}/conf/server.xml.https
-	sed -n '/ port="8443"/,/-->/p' ${CATALINA_HOME}/conf/server.xml | tail -2 | head -1 >> ${CATALINA_HOME}/conf/server.xml.https
-	echo "<!--" >> ${CATALINA_HOME}/conf/server.xml.https
+	if [ "" != "$(grep -F 'Apache Tomcat Version 9' ${CATALINA_HOME}/RELEASE-NOTES)" ]; then
+		sed -n '/ port="8443" protocol="org.apache.coyote.http11.Http11NioProtocol"/,/<Certificate/p' ${CATALINA_HOME}/conf/server.xml | sed '$d' >> ${CATALINA_HOME}/conf/server.xml.https
+		echo '<Certificate certificateKeystoreFile="'${LIFERAY_HOME}'/keystore" type="RSA" />' >> ${CATALINA_HOME}/conf/server.xml.https
+		echo '</SSLHostConfig>' >> ${CATALINA_HOME}/conf/server.xml.https
+		echo '</Connector>' >> ${CATALINA_HOME}/conf/server.xml.https
+	else
+		sed -n '/ port="8443"/,/-->/p' ${CATALINA_HOME}/conf/server.xml | sed '$d' | sed '$d' >> ${CATALINA_HOME}/conf/server.xml.https
+		echo 'keystoreFile="'${LIFERAY_HOME}'/keystore" keystorePass="changeit"' >> ${CATALINA_HOME}/conf/server.xml.https
+		sed -n '/ port="8443"/,/-->/p' ${CATALINA_HOME}/conf/server.xml | tail -2 | head -1 >> ${CATALINA_HOME}/conf/server.xml.https
+	fi
 
+	echo '<!--' >> ${CATALINA_HOME}/conf/server.xml.https
 	sed -n '/ port="8443"/,$p' ${CATALINA_HOME}/conf/server.xml >> ${CATALINA_HOME}/conf/server.xml.https
 
 	mv ${CATALINA_HOME}/conf/server.xml ${CATALINA_HOME}/conf/server.xml.http
