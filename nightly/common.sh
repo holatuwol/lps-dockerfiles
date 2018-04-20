@@ -738,22 +738,34 @@ tcp_cluster() {
 
 	cp -f tcp.xml tcp.xml.tcpping
 
-	if [ "" == "$(grep -F jgroups.tcpping.initial_hosts= ${LIFERAY_HOME}/tomcat/bin/setenv.sh)" ]; then
-		local BASE_IP=$(hostname -I | cut -d'.' -f 1,2,3)
+	local BASE_IP=$(hostname -I | cut -d'.' -f 1,2,3)
+
+	if [ -f tcp.xml.jdbcping ] && [ "" != "$(grep -F jdbc.default ${LIFERAY_HOME}/portal-ext.properties | grep -vF '#')" ]; then
+		sed -n '1,/<TCPPING/p' tcp.xml | sed '$d' > tcp.xml.jdbcping
+
+		local JNDI_NAME=$(grep -F jdbc.default.jndi.name= ${LIFERAY_HOME}/portal-ext.properties | grep -vF '#' | cut -d'=' -f 2)
+		local DRIVER_CLASS_NAME=$(grep -F jdbc.default.driverClassName= ${LIFERAY_HOME}/portal-ext.properties | grep -vF '#' | cut -d'=' -f 2)
+		local DRIVER_URL=$(grep -F jdbc.default.url= ${LIFERAY_HOME}/portal-ext.properties | grep -vF '#' | cut -d'=' -f 2)
+		local USERNAME=$(grep -F jdbc.default.username= ${LIFERAY_HOME}/portal-ext.properties | grep -vF '#' | cut -d'=' -f 2)
+		local PASSWORD=$(grep -F jdbc.default.password= ${LIFERAY_HOME}/portal-ext.properties | grep -vF '#' | cut -d'=' -f 2)
+
+		if [ "" != "${JNDI_NAME}" ]; then
+			echo "Replacing TCPPING with JDBC_PING (JNDI)"
+			echo '<JDBC_PING datasource_jndi_name="java:comp/env/'${JNDI_NAME}'" />' >> tcp.xml.jdbcping
+		else
+			echo "Replacing TCPPING with JDBC_PING (${DRIVER_URL})"
+			echo '<JDBC_PING connection_url="'${DRIVER_URL}'" connection_username="'${USERNAME}'" connection_password="'${PASSWORD}'" connection_driver="'${DRIVER_CLASS_NAME}'" />' >> tcp.xml.jdbcping
+		fi
+
+		sed -n '/<MERGE/,$p' tcp.xml >> tcp.xml.jdbcping
+
+		cp -f tcp.xml.jdbcping tcp.xml
+	elif [ "" == "$(grep -F jgroups.tcpping.initial_hosts= ${LIFERAY_HOME}/tomcat/bin/setenv.sh)" ]; then
+
 		local INITIAL_HOSTS=$(seq 255 | awk '{ print "'${BASE_IP}'." $1 "[7800],'${BASE_IP}'." $1 "[7801]" }' | tr '\n' ',' | sed 's/,$//g')
 
 		echo '' >> ${LIFERAY_HOME}/tomcat/bin/setenv.sh
 		echo 'CATALINA_OPTS="${CATALINA_OPTS} -Djgroups.tcpping.initial_hosts='${INITIAL_HOSTS}'"' >> ${LIFERAY_HOME}/tomcat/bin/setenv.sh
-	fi
-
-	if [ -f ${LIFERAY_HOME}/portal-ext.properties ] && [ "" != "$(grep -F jdbc/LiferayPool ${LIFERAY_HOME}/portal-ext.properties | grep -vF '#')" ]; then
-		echo "Replacing TCPPING with JDBC_PING"
-
-		sed -n '1,/<TCPPING/p' tcp.xml | sed '$d' > tcp.xml.jdbcping
-		echo '<JDBC_PING datasource_jndi_name="java:comp/env/jdbc/LiferayPool" />' >> tcp.xml.jdbcping
-		sed -n '/<MERGE/,$p' tcp.xml >> tcp.xml.jdbcping
-
-		cp -f tcp.xml.jdbcping tcp.xml
 	fi
 
 	cd -
