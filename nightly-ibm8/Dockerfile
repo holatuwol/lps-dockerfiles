@@ -6,7 +6,6 @@ ENV LIFERAY_HOME /opt/liferay
 ENV IS_UPGRADE false
 ENV BASE_BRANCH	master
 
-ENV BRANCH_ARCHIVE_MIRROR http://10.50.0.165/builds/branches
 ENV TAG_ARCHIVE_MIRROR http://10.50.0.165/builds/fixpacks
 ENV LICENSE_MIRROR http://10.50.0.165/licenses
 
