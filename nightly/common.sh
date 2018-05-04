@@ -246,63 +246,26 @@ downloadbranchbuild() {
 downloadbranchmirror() {
 	local REQUEST_URL=
 
-	if [[ "$BASE_BRANCH" == *-private ]]; then
+	if [[ "$BASE_BRANCH" == ee-* ]] || [[ "$BASE_BRANCH" == *-private ]]; then
 		if [ "" == "$LIFERAY_FILES_MIRROR" ]; then
 			return 0
 		fi
 
-		REQUEST_URL="$LIFERAY_FILES_MIRROR/private/ee/portal/nightly-$BASE_BRANCH/"
+		REQUEST_URL="$LIFERAY_FILES_MIRROR/private/ee/portal/upstream-$BASE_BRANCH/latest/liferay-portal-tomcat-$SHORT_NAME.zip"
 	else
 		if [ "" == "$LIFERAY_RELEASES_MIRROR" ]; then
-			return 0
+			LIFERAY_RELEASES_MIRROR=https://releases.liferay.com
 		fi
 
-		REQUEST_URL="$LIFERAY_RELEASES_MIRROR/portal/nightly-$BASE_BRANCH/"
+		REQUEST_URL="$LIFERAY_RELEASES_MIRROR/portal/upstream-$BASE_BRANCH/latest/liferay-portal-tomcat-$SHORT_NAME.zip"
 	fi
 
-	echo "Identifying build timestamp via ${REQUEST_URL}"
+	BUILD_NAME="$SHORT_NAME.zip"
 
-	local BUILD_TIMESTAMP=$(curl -s --connect-timeout 2 $REQUEST_URL | grep -o '<a href="[0-9]*/">' | cut -d'"' -f 2 | sort | tail -1)
+	echo "Downloading snapshot for $SHORT_NAME"
 
-	if [ "" == "$BUILD_TIMESTAMP" ]; then
-		if [[ "$BASE_BRANCH" == ee-* ]] || [[ "$BASE_BRANCH" == *-private ]]; then
-			echo "Unable to identify build timestamp (maybe you forgot to connect to a VPN)"
-			return 0
-		fi
-
-		LIFERAY_RELEASES_MIRROR=https://releases.liferay.com
-		REQUEST_URL="$LIFERAY_RELEASES_MIRROR/portal/nightly-$BASE_BRANCH/"
-
-		echo "Identifying build timestamp via ${REQUEST_URL}"
-
-		BUILD_TIMESTAMP=$(curl -s --connect-timeout 2 $REQUEST_URL | grep -o '<a href="[0-9]*/">' | cut -d'"' -f 2 | sort | tail -1)
-
-		if [ "" == "$BUILD_TIMESTAMP" ]; then
-			return 0
-		fi
-	fi
-
-	REQUEST_URL="${REQUEST_URL}${BUILD_TIMESTAMP}"
-	BUILD_TIMESTAMP=$(echo $BUILD_TIMESTAMP | cut -d'/' -f 1)
-	BUILD_NAME="$SHORT_NAME-$BUILD_TIMESTAMP.zip"
-
-	echo "Identifying build candidate (branch) via ${REQUEST_URL}"
-
-	local BUILD_CANDIDATE=$(curl -s --connect-timeout 2 $REQUEST_URL | grep -o '<a href="[^"]*tomcat-7.0-[^"]*">' | cut -d'"' -f 2 | sort | tail -1)
-
-	if [ "" == "$BUILD_CANDIDATE" ]; then
-		return 0
-	fi
-
-	echo $BUILD_CANDIDATE
-
-	REQUEST_URL="${REQUEST_URL}${BUILD_CANDIDATE}"
-
-	NEW_BASELINE=$(echo $BUILD_CANDIDATE | grep -o "[a-z0-9]*.zip" | cut -d'.' -f 1 | cut -d'-' -f 2)
-
-	echo "Downloading snapshot for $SHORT_NAME ($NEW_BASELINE)"
-
-	getbuild $REQUEST_URL $SHORT_NAME-$BUILD_TIMESTAMP.zip
+	getbuild $REQUEST_URL ${BUILD_NAME}
+	NEW_BASELINE=$(unzip -c -qq ${LIFERAY_HOME}/${BUILD_NAME} liferay-portal-${SHORT_NAME}/.githash)
 }
 
 downloadbuild() {
