@@ -301,7 +301,7 @@ downloadreleasebuild() {
 		fi
 	fi
 
-	if [[ 10 -ge $(echo "$RELEASE_ID" | cut -d'.' -f 3 | cut -d'-' -f 1) ]]; then
+	if [[ 10 -le $(echo "$RELEASE_ID" | cut -d'.' -f 3 | cut -d'-' -f 1) ]]; then
 		local RELEASE_ID_NUMERIC=$(echo "$RELEASE_ID" | cut -d'.' -f 1,2,3 | tr -d '.')
 		local LICENSE_URL="${LICENSE_MIRROR}/${RELEASE_ID_NUMERIC}.xml"
 
@@ -515,7 +515,7 @@ parsearg() {
 		return 0
 	fi
 
-	if [[ "$1" == 7.0.10.* ]] || [[ "$1" == 6.2.10.* ]]; then
+	if [[ "$1" == 7.0.10.* ]] || [[ "$1" == 6.2.10.* ]] || [[ "$1" == 6.1.* ]]; then
 		RELEASE_ID=$1
 		return 0
 	fi
