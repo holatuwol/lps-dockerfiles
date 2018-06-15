@@ -358,6 +358,28 @@ downloadtag() {
 	getbuild "${TAG_ARCHIVE_MIRROR}/${BUILD_NAME}"
 }
 
+envreload() {
+	if [ -f ${HOME}/.oldenv ]; then
+		source ${HOME}/.oldenv
+
+		return 0
+	fi
+
+	# Set a random password
+
+	if [ "" == "${LIFERAY_PASSWORD}" ]; then
+		LIFERAY_PASSWORD=$(cat /dev/urandom | tr -dc 'a-zA-Z0-9' | fold -w 30 | head -n 1)
+	fi
+
+	# Download and unzip the build
+
+	parsearg $1
+	checkservicepack
+	downloadbuild
+
+	env | grep -v '^PWD=' > ${HOME}/.oldenv
+}
+
 extract() {
 	# Figure out if we need to untar the build, based on whether the
 	# baseline hash has changed
@@ -733,42 +755,3 @@ tcp_cluster() {
 
 	cd -
 }
-
-# Set a random password
-
-if [ "" == "${LIFERAY_PASSWORD}" ]; then
-	LIFERAY_PASSWORD=$(cat /dev/urandom | tr -dc 'a-zA-Z0-9' | fold -w 30 | head -n 1)
-fi
-
-# Download and unzip the build
-
-parsearg $1
-checkservicepack
-downloadbuild
-makesymlink
-copyextras
-setup_wizard
-
-if [ -d /build ]; then
-	rsync -arq --exclude=tomcat /build/ ${LIFERAY_HOME}/
-
-	if [ -d /build/tomcat ] && [ "" == "$(find /build/tomcat -name catalina.sh)" ]; then
-		rsync -arq /build/tomcat/ ${LIFERAY_HOME}/tomcat/
-	fi
-fi
-
-if [ -d /opt/ibm/java ]; then
-	rm -f /opt/liferay/tomcat/webapps/ROOT/WEB-INF/classes/META-INF/MANIFEST.MF
-fi
-
-computername
-
-create_keystore
-setup_ssl
-
-if [ -f ${LIFERAY_HOME}/portal-ext.properties ]; then
-	BASE_IP=$(hostname -I | cut -d'.' -f 1,2,3)
-	sed -i.bak "s/localhost/${BASE_IP}.1/g" ${LIFERAY_HOME}/portal-ext.properties
-fi
-
-tcp_cluster
