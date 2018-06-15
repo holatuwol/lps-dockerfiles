@@ -657,13 +657,16 @@ setup_wizard() {
 		return 0
 	fi
 
-	local RELEASE_INFO_JAR=${LIFERAY_HOME}/tomcat/lib/ext/portal-kernel.jar
+	if [ "" == "${LP_VERSION}" ]; then
+		local RELEASE_INFO_JAR=$(find ${LIFERAY_HOME} portal-kernel.jar)
 
-	if [ ! -f ${RELEASE_INFO_JAR} ]; then
-		RELEASE_INFO_JAR=${LIFERAY_HOME}/tomcat/lib/ext/portal-service.jar
+		if [ "" == "${RELEASE_INFO_JAR}" ]; then
+			RELEASE_INFO_JAR=$(find ${LIFERAY_HOME} portal-service.jar)
+		fi
+
+		LP_VERSION=$(groovy -classpath ${RELEASE_INFO_JAR} -e 'print com.liferay.portal.kernel.util.ReleaseInfo.getVersion()')
 	fi
 
-	local LP_VERSION=$(groovy -classpath ${RELEASE_INFO_JAR} -e 'print com.liferay.portal.kernel.util.ReleaseInfo.getVersion()')
 	local LP_MAJOR_VERSION=$(echo "${LP_VERSION}" | cut -d'.' -f 1,2)
 
 	echo "
