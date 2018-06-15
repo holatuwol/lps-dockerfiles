@@ -733,19 +733,19 @@ tcp_cluster() {
 		echo "Using already extracted tcp.xml"
 		rm -f tcp.xml tcp.xml.jdbcping
 		mv tcp.xml.tcpping tcp.xml
-	elif [ -d 'osgi/marketplace/Liferay Foundation.lpkg' ]; then
+	elif [ -f "${LIFERAY_HOME}/osgi/marketplace/Liferay Foundation.lpkg" ]; then
 		echo "Extracting tcp.xml from Liferay Foundation.lpkg"
-		unzip -qq -j "osgi/marketplace/Liferay Foundation.lpkg" 'com.liferay.portal.cluster.multiple*.jar'
+		unzip -qq -j "${LIFERAY_HOME}/osgi/marketplace/Liferay Foundation.lpkg" 'com.liferay.portal.cluster.multiple*.jar'
 		unzip -qq -j com.liferay.portal.cluster.multiple*.jar 'lib/jgroups*'
 		rm com.liferay.portal.cluster.multiple*.jar
 		unzip -qq -j jgroups*.jar tcp.xml
 		rm jgroups*.jar
-	elif [ -f osgi/portal/com.liferay.portal.cluster.multiple.jar ]; then
+	elif [ -f ${LIFERAY_HOME}/osgi/portal/com.liferay.portal.cluster.multiple.jar ]; then
 		echo "Extracting tcp.xml from com.liferay.portal.cluster.multiple.jar"
-		unzip -qq -j osgi/portal/com.liferay.portal.cluster.multiple.jar 'lib/jgroups*'
+		unzip -qq -j ${LIFERAY_HOME}/osgi/portal/com.liferay.portal.cluster.multiple.jar 'lib/jgroups*'
 		unzip -qq -j jgroups*.jar tcp.xml
 		rm jgroups*.jar
-	elif [ -f tomcat/webapps/ROOT/WEB-INF/lib/jgroups.jar ]; then
+	elif [ -f ${LIFERAY_HOME}/tomcat/webapps/ROOT/WEB-INF/lib/jgroups.jar ]; then
 		echo "Extracting tcp.xml from WEB-INF/lib/jgroups.jar"
 		unzip -qq -j tomcat/webapps/ROOT/WEB-INF/lib/jgroups.jar tcp.xml
 	else
@@ -777,7 +777,7 @@ tcp_cluster() {
 		sed -n '/<MERGE/,$p' tcp.xml >> tcp.xml.jdbcping
 
 		cp -f tcp.xml.jdbcping tcp.xml
-	elif [ "" == "$(grep -F jgroups.tcpping.initial_hosts= ${LIFERAY_HOME}/tomcat/bin/setenv.sh)" ]; then
+	elif [ -f ${LIFERAY_HOME}/tomcat/bin/setenv.sh ] && [ "" == "$(grep -F jgroups.tcpping.initial_hosts= ${LIFERAY_HOME}/tomcat/bin/setenv.sh)" ]; then
 
 		local INITIAL_HOSTS=$(seq 255 | awk '{ print "'${BASE_IP}'." $1 "[7800],'${BASE_IP}'." $1 "[7801]" }' | tr '\n' ',' | sed 's/,$//g')
 
