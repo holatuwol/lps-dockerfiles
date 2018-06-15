@@ -290,6 +290,18 @@ downloadbuild() {
 	fi
 }
 
+downloadlicense() {
+	local RELEASE_ID_NUMERIC=$(echo "$RELEASE_ID" | cut -d'.' -f 1,2,3 | tr -d '.')
+	local LICENSE_URL="${LICENSE_MIRROR}/${RELEASE_ID_NUMERIC}.xml"
+
+	echo "Downloading developer license from ${LICENSE_URL}"
+
+	mkdir -p ${LIFERAY_HOME}/deploy/
+	curl --connect-timeout 2 -o ${LIFERAY_HOME}/deploy/license.xml "${LICENSE_URL}"
+
+	REQUEST_URL="$LIFERAY_FILES_MIRROR/private/ee/portal/${RELEASE_ID}/"
+}
+
 downloadreleasebuild() {
 	local REQUEST_URL=
 
@@ -302,15 +314,7 @@ downloadreleasebuild() {
 	fi
 
 	if [[ 10 -le $(echo "$RELEASE_ID" | cut -d'.' -f 3 | cut -d'-' -f 1) ]]; then
-		local RELEASE_ID_NUMERIC=$(echo "$RELEASE_ID" | cut -d'.' -f 1,2,3 | tr -d '.')
-		local LICENSE_URL="${LICENSE_MIRROR}/${RELEASE_ID_NUMERIC}.xml"
-
-		echo "Downloading developer license from ${LICENSE_URL}"
-
-		mkdir -p ${LIFERAY_HOME}/deploy/
-		curl --connect-timeout 2 -o ${LIFERAY_HOME}/deploy/license.xml "${LICENSE_URL}"
-
-		REQUEST_URL="$LIFERAY_FILES_MIRROR/private/ee/portal/${RELEASE_ID}/"
+		downloadlicense
 	else
 		REQUEST_URL="$LIFERAY_RELEASES_MIRROR/portal/${RELEASE_ID}/"
 	fi
