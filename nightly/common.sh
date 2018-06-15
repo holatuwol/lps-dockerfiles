@@ -760,11 +760,11 @@ tcp_cluster() {
 	if [ -f tcp.xml.jdbcping ] && [ "" != "$(grep -F jdbc.default ${LIFERAY_HOME}/portal-ext.properties | grep -vF '#')" ]; then
 		sed -n '1,/<TCPPING/p' tcp.xml | sed '$d' > tcp.xml.jdbcping
 
-		local JNDI_NAME=$(grep -F jdbc.default.jndi.name= ${LIFERAY_HOME}/portal-ext.properties | grep -vF '#' | cut -d'=' -f 2)
-		local DRIVER_CLASS_NAME=$(grep -F jdbc.default.driverClassName= ${LIFERAY_HOME}/portal-ext.properties | grep -vF '#' | cut -d'=' -f 2)
-		local DRIVER_URL=$(grep -F jdbc.default.url= ${LIFERAY_HOME}/portal-ext.properties | grep -vF '#' | cut -d'=' -f 2)
-		local USERNAME=$(grep -F jdbc.default.username= ${LIFERAY_HOME}/portal-ext.properties | grep -vF '#' | cut -d'=' -f 2)
-		local PASSWORD=$(grep -F jdbc.default.password= ${LIFERAY_HOME}/portal-ext.properties | grep -vF '#' | cut -d'=' -f 2)
+		local JNDI_NAME=$(grep -F jdbc.default.jndi.name= ${LIFERAY_HOME}/portal-ext.properties | grep -vF '#' | cut -d'=' -f 2-)
+		local DRIVER_CLASS_NAME=$(grep -F jdbc.default.driverClassName= ${LIFERAY_HOME}/portal-ext.properties | grep -vF '#' | cut -d'=' -f 2-)
+		local DRIVER_URL=$(grep -F jdbc.default.url= ${LIFERAY_HOME}/portal-ext.properties | grep -vF '#' | cut -d'=' -f 2-)
+		local USERNAME=$(grep -F jdbc.default.username= ${LIFERAY_HOME}/portal-ext.properties | grep -vF '#' | cut -d'=' -f 2-)
+		local PASSWORD=$(grep -F jdbc.default.password= ${LIFERAY_HOME}/portal-ext.properties | grep -vF '#' | cut -d'=' -f 2-)
 
 		if [ "" != "${JNDI_NAME}" ]; then
 			echo "Replacing TCPPING with JDBC_PING (JNDI)"
