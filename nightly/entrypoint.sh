@@ -1,6 +1,6 @@
 #!/bin/bash
 
-. /home/liferay/common.sh $1
+. /home/liferay/common.sh
 
 if [ -f ${LIFERAY_HOME}/setup.sh ]; then
 	cd ${LIFERAY_HOME}
@@ -10,7 +10,7 @@ if [ -f ${LIFERAY_HOME}/setup.sh ]; then
 fi
 
 if [ "true" == "${IS_UPGRADE}" ]; then
-	LIFERAY_HOME=${LIFERAY_HOME} /home/liferay/upgrade.sh
+	. /home/liferay/upgrade.sh $1
 else
-	LIFERAY_HOME=${LIFERAY_HOME} /home/liferay/bundle.sh
+	. /home/liferay/bundle.sh $1
 fi

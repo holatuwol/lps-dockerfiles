@@ -1,6 +1,6 @@
 #!/bin/bash
 
-envreload
+envreload $1
 
 copyextras
 
