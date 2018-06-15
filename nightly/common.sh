@@ -104,7 +104,11 @@ copyextras() {
 	if [ -d "/build/drivers" ]; then
 		local GLOBAL_LIB=$(dirname $(find ${LIFERAY_HOME} -name portlet.jar))
 
-		rsync -aq "/build/drivers/" "${GLOBAL_LIB}"
+		if [ -f /usr/bin/rsync ]; then
+			rsync -aq "/build/drivers/" "${GLOBAL_LIB}"
+		else
+			cp -f "/build/drivers/*" "${GLOBAL_LIB}"
+		fi
 	fi
 
 	if [ ! -d /build/patches ] && [ ! -d "${LIFERAY_HOME}/patching-tool" ]; then
@@ -156,11 +160,20 @@ copyextras() {
 
 	if [ -d "/build/patches" ]; then
 		mkdir -p "${LIFERAY_HOME}/patches"
-		rsync -av "/build/patches/" "${LIFERAY_HOME}/patches/"
+
+		if [ -f /usr/bin/rsync ]; then
+			rsync -av "/build/patches/" "${LIFERAY_HOME}/patches/"
+		else
+			cp -f /build/patches/ "${LIFERAY_HOME}/patches/"
+		fi
 	fi
 
 	if [ -d "${LIFERAY_HOME}/patches" ]; then
-		rsync -av "/${LIFERAY_HOME}/patches/" "${LIFERAY_HOME}/patching-tool/patches/"
+		if [ -f /usr/bin/rsync ]; then
+			rsync -av "/${LIFERAY_HOME}/patches/" "${LIFERAY_HOME}/patching-tool/patches/"
+		else
+			cp -f /${LIFERAY_HOME}/patches/* "${LIFERAY_HOME}/patching-tool/patches/"
+		fi
 	fi
 
 	cd "${LIFERAY_HOME}/patching-tool"
@@ -279,6 +292,7 @@ downloadbuild() {
 		return 0
 	elif [ -d /build ] && [ "" != "$(find /build -name catalina.sh)" ]; then
 		rsync -arq --exclude=tomcat /build/ ${LIFERAY_HOME}/
+
 		return 0
 	elif [ "" != "$(find ${LIFERAY_HOME} -name catalina.sh)" ]; then
 		return 0
