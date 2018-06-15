@@ -456,7 +456,10 @@ getpatch() {
 	setpatchfile $1
 
 	if [ "" == "$PATCH_FILE" ]; then
-		echo "Unable to determine patch file for $1"
+		if [ "" != "$1" ]; then
+			echo "Unable to determine patch file for $1"
+		fi
+
 		return 0
 	fi
 
