@@ -102,7 +102,9 @@ computername() {
 
 copyextras() {
 	if [ -d "/build/drivers" ]; then
-		rsync -aq "/build/drivers/" "${LIFERAY_HOME}/tomcat/lib/ext/"
+		local GLOBAL_LIB=$(dirname $(find ${LIFERAY_HOME} -name portlet.jar))
+
+		rsync -aq "/build/drivers/" "${GLOBAL_LIB}"
 	fi
 
 	if [ ! -d /build/patches ] && [ ! -d "${LIFERAY_HOME}/patching-tool" ]; then
@@ -133,9 +135,13 @@ copyextras() {
 		cd "${LIFERAY_HOME}/patching-tool"
 		rm -f default.properties
 
-		mv ../tomcat /tmp
-		./patching-tool.sh default auto-discovery ..
-		mv /tmp/tomcat ..
+		if [ -h ../tomcat ]; then
+			mv ../tomcat /tmp
+			./patching-tool.sh default auto-discovery ..
+			mv /tmp/tomcat ..
+		else
+			./patching-tool.sh default auto-discovery ..
+		fi
 
 		touch .uptodate
 		cd -
@@ -269,7 +275,9 @@ downloadbranchmirror() {
 }
 
 downloadbuild() {
-	if [ -d /build ] && [ "" != "$(find /build -name catalina.sh)" ]; then
+	if [ "false" == "${DOWNLOAD_BUILD}" ]; then
+		return 0
+	elif [ -d /build ] && [ "" != "$(find /build -name catalina.sh)" ]; then
 		rsync -arq --exclude=tomcat /build/ ${LIFERAY_HOME}/
 		return 0
 	elif [ "" != "$(find ${LIFERAY_HOME} -name catalina.sh)" ]; then
