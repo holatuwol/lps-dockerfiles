@@ -272,10 +272,10 @@ downloadbuild() {
 	if [ -d /build ] && [ "" != "$(find /build -name catalina.sh)" ]; then
 		rsync -arq --exclude=tomcat /build/ ${LIFERAY_HOME}/
 		return 0
-	elif [ "" != "$(find /opt/liferay -name catalina.sh)" ]; then
+	elif [ "" != "$(find ${LIFERAY_HOME} -name catalina.sh)" ]; then
 		return 0
 	elif [ "" != "$BUILD_NAME" ]; then
-		cp /build/$BUILD_NAME /opt/liferay
+		cp /build/$BUILD_NAME ${LIFERAY_HOME}
 		extract
 		return $?
 	elif [ "" != "$BASE_TAG" ]; then
