@@ -771,7 +771,7 @@ tcp_cluster() {
 			echo '<JDBC_PING datasource_jndi_name="java:comp/env/'${JNDI_NAME}'" />' >> tcp.xml.jdbcping
 		else
 			echo "Replacing TCPPING with JDBC_PING (${DRIVER_URL})"
-			echo '<JDBC_PING connection_url="'${DRIVER_URL}'" connection_username="'${USERNAME}'" connection_password="'${PASSWORD}'" connection_driver="'${DRIVER_CLASS_NAME}'" />' >> tcp.xml.jdbcping
+			echo '<JDBC_PING connection_url="'$(echo ${DRIVER_URL} | sed 's/&/&amp;/g')'" connection_username="'${USERNAME}'" connection_password="'${PASSWORD}'" connection_driver="'${DRIVER_CLASS_NAME}'" />' >> tcp.xml.jdbcping
 		fi
 
 		sed -n '/<MERGE/,$p' tcp.xml >> tcp.xml.jdbcping
