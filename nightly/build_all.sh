@@ -1,8 +1,8 @@
 #!/bin/bash
 
 for version in ../nightly-*; do
-	cd $version
+	cp -f build.sh ${version}
+	cd ${version}
 	./build.sh
+	cd -
 done
-
-cd ../nightly

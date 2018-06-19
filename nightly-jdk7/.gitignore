@@ -1,3 +1,4 @@
+app_tomcat.sh
 build.sh
 bundle.sh
 common.sh

@@ -2,6 +2,12 @@
 
 . /home/liferay/common.sh
 
+if [ "" == "${APP_SERVER}" ]; then
+	APP_SERVER=tomcat
+fi
+
+. /home/liferay/app_${APP_SERVER}.sh
+
 if [ -f ${LIFERAY_HOME}/setup.sh ]; then
 	cd ${LIFERAY_HOME}
 	chmod u+x setup.sh
