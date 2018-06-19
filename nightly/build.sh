@@ -1,8 +1,15 @@
 #!/bin/bash
 
-for version in ../nightly-*; do
-	cd $version
-	./build.sh
-done
+cp -f ../nightly/bundle.sh .
+cp -f ../nightly/common.sh .
+cp -f ../nightly/entrypoint.sh .
+cp -f ../nightly/upgrade.sh .
+cp -f ../nightly/sslconfig.cnf.base .
 
-cd ../nightly
+IMAGE_NAME=$1
+
+if [ "" == "${IMAGE_NAME}" ]; then
+	IMAGE_NAME=mcd-$(basename $PWD)
+fi
+
+docker build . -t "${IMAGE_NAME}"
