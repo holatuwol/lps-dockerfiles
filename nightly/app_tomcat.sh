@@ -1,25 +1,5 @@
 #!/bin/bash
 
-computername() {
-	if [ "" != "$(grep -F '-Denv.COMPUTERNAME=' ${LIFERAY_HOME}/tomcat/bin/setenv.sh)" ]; then
-		return 0
-	fi
-
-	if [ "" == "${RELEASE_ID}" ]; then
-		return 0
-	fi
-
-	local COMPUTERNAME="${RELEASE_ID}"
-
-	if [ "" != "${PATCH_ID}" ]; then
-		COMPUTERNAME="${PATCH_ID}"
-	fi
-
-	echo '' >> ${LIFERAY_HOME}/tomcat/bin/setenv.sh
-	echo 'CATALINA_OPTS="${CATALINA_OPTS} -Denv.COMPUTERNAME='${COMPUTERNAME}'"' >> ${LIFERAY_HOME}/tomcat/bin/setenv.sh
-	echo 'export CATALINA_OPTS' >> ${LIFERAY_HOME}/tomcat/bin/setenv.sh
-}
-
 create_keystore() {
 	if [ -f ${LIFERAY_HOME}/keystore ]; then
 		return 0

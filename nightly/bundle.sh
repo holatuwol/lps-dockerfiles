@@ -18,8 +18,6 @@ if [ -d /opt/ibm/java ]; then
 	rm -f /opt/liferay/tomcat/webapps/ROOT/WEB-INF/classes/META-INF/MANIFEST.MF
 fi
 
-computername
-
 # Setup SSH and clustering
 
 create_keystore
