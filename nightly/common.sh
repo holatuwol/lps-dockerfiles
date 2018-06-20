@@ -442,15 +442,17 @@ setup_wizard() {
 		return 0
 	fi
 
-	if [ "" == "${LP_VERSION}" ]; then
-		local RELEASE_INFO_JAR=$(find ${LIFERAY_HOME} -name portal-kernel.jar)
+	local RELEASE_INFO_JAR=$(find ${LIFERAY_HOME} -name portal-kernel.jar)
 
-		if [ "" == "${RELEASE_INFO_JAR}" ]; then
-			RELEASE_INFO_JAR=$(find ${LIFERAY_HOME} -name portal-service.jar)
-		fi
-
-		LP_VERSION=$(groovy -classpath ${RELEASE_INFO_JAR} -e 'print com.liferay.portal.kernel.util.ReleaseInfo.getVersion()')
+	if [ "" == "${RELEASE_INFO_JAR}" ]; then
+		RELEASE_INFO_JAR=$(find ${LIFERAY_HOME} -name portal-service.jar)
 	fi
+
+	echo 'public class Test { public static void main( String[] args ) { System.out.print(com.liferay.portal.kernel.util.ReleaseInfo.getVersion()); } }' > Test.java
+	javac -classpath .:${RELEASE_INFO_JAR} Test.java
+
+	LP_VERSION=$(java -classpath .:${RELEASE_INFO_JAR} Test)
+	rm Test.java Test.class
 
 	local LP_MAJOR_VERSION=$(echo "${LP_VERSION}" | cut -d'.' -f 1,2)
 

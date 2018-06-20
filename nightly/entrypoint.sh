@@ -1,12 +1,15 @@
 #!/bin/bash
 
-. /home/liferay/common.sh
+. ${HOME}/common.sh
 
 if [ "" == "${APP_SERVER}" ]; then
 	APP_SERVER=tomcat
 fi
 
-. /home/liferay/app_${APP_SERVER}.sh
+. ${HOME}/app_${APP_SERVER}.sh
+
+cd ${LIFERAY_HOME}
+touch .liferay-home
 
 if [ -f ${LIFERAY_HOME}/setup.sh ]; then
 	cd ${LIFERAY_HOME}
@@ -16,7 +19,7 @@ if [ -f ${LIFERAY_HOME}/setup.sh ]; then
 fi
 
 if [ "true" == "${IS_UPGRADE}" ]; then
-	. /home/liferay/upgrade.sh $1
+	. ${HOME}/upgrade.sh $1
 else
-	. /home/liferay/bundle.sh $1
+	. ${HOME}/bundle.sh $1
 fi
