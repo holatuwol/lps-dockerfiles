@@ -521,8 +521,6 @@ tcp_cluster() {
 
 	cp -f tcp.xml tcp.xml.tcpping
 
-	local BASE_IP=$(hostname -I | cut -d'.' -f 1,2,3)
-
 	if [ -f tcp.xml.jdbcping ] && [ "" != "$(grep -F jdbc.default ${LIFERAY_HOME}/portal-ext.properties | grep -vF '#')" ]; then
 		sed -n '1,/<TCPPING/p' tcp.xml | sed '$d' > tcp.xml.jdbcping
 
@@ -543,12 +541,6 @@ tcp_cluster() {
 		sed -n '/<MERGE/,$p' tcp.xml >> tcp.xml.jdbcping
 
 		cp -f tcp.xml.jdbcping tcp.xml
-	elif [ -f ${LIFERAY_HOME}/tomcat/bin/setenv.sh ] && [ "" == "$(grep -F jgroups.tcpping.initial_hosts= ${LIFERAY_HOME}/tomcat/bin/setenv.sh)" ]; then
-
-		local INITIAL_HOSTS=$(seq 255 | awk '{ print "'${BASE_IP}'." $1 "[7800],'${BASE_IP}'." $1 "[7801]" }' | tr '\n' ',' | sed 's/,$//g')
-
-		echo '' >> ${LIFERAY_HOME}/tomcat/bin/setenv.sh
-		echo 'CATALINA_OPTS="${CATALINA_OPTS} -Djgroups.tcpping.initial_hosts='${INITIAL_HOSTS}'"' >> ${LIFERAY_HOME}/tomcat/bin/setenv.sh
 	fi
 
 	cd -

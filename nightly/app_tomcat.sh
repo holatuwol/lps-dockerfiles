@@ -184,6 +184,8 @@ makesymlink() {
 	CATALINA_HOME=$(find ${LIFERAY_HOME} -mindepth 1 -maxdepth 1 -name 'tomcat*')
 	echo "Adding symbolic link to $CATALINA_HOME"
 	ln -s $CATALINA_HOME ${LIFERAY_HOME}/tomcat
+
+	cp -f ${LIFERAY_HOME}/setenv.sh ${LIFERAY_HOME}/bin/
 }
 
 setup_ssl() {
