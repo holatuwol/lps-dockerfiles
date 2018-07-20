@@ -2,6 +2,7 @@
 
 envreload $1
 
+makesymlink
 copyextras
 
 if [ -d /build ]; then
@@ -42,4 +43,9 @@ grep -vF 'jdbc.default' ${LIFERAY_HOME}/portal-ext.properties | grep . > ${LIFER
 echo "liferay.home=${LIFERAY_HOME}" >> ${LIFERAY_HOME}/tools/portal-tools-db-upgrade-client/portal-upgrade-ext.properties
 
 cd ${LIFERAY_HOME}/tools/portal-tools-db-upgrade-client/
-java -Duser.dir=$PWD -jar com.liferay.portal.tools.db.upgrade.client.jar -j "-Dfile.encoding=UTF8 -Duser.timezone=GMT -Xmx${JVM_HEAP_SIZE}"
+
+if [ -f db_upgrade.sh ]; then
+	./db_upgrade.sh -j "-Dfile.encoding=UTF8 -Duser.timezone=GMT -Xmx${JVM_HEAP_SIZE}"
+else
+	java -Duser.dir=$PWD -jar com.liferay.portal.tools.db.upgrade.client.jar -j "-Dfile.encoding=UTF8 -Duser.timezone=GMT -Xmx${JVM_HEAP_SIZE}"
+fi

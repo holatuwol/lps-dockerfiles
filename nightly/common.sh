@@ -69,6 +69,11 @@ closestservicepack() {
 		done
 	fi
 
+	if [[ "${1}" == *-7110 ]]; then
+		RELEASE_ID=7.1.10
+		return 0
+	fi
+
 	if [[ "${1}" == *-7010 ]]; then
 		RELEASE_ID=7.0.10
 		return 0
@@ -360,7 +365,7 @@ parsearg() {
 		return 0
 	fi
 
-	if [[ "$1" == 7.0.10.* ]] || [[ "$1" == 6.2.10.* ]] || [[ "$1" == 6.1.* ]]; then
+	if [[ "$1" == 7.1.* ]] || [[ "$1" == 7.0.* ]] || [[ "$1" == 6.2.* ]] || [[ "$1" == 6.1.* ]]; then
 		RELEASE_ID=$1
 		return 0
 	fi
@@ -384,15 +389,9 @@ setpatchfile() {
 	PATCH_FOLDER=
 	PATCH_FILE=
 
-	if [[ "$1" == hotfix-*-6210 ]]; then
+	if [[ "$1" == hotfix-*-6210 ]] || [[ "$1" == hotfix-*-7010 ]] || [[ "$1" == hotfix-*-7110 ]]; then
 		PATCH_FOLDER=hotfix
 		PATCH_FILE=liferay-$1.zip
-	elif [[ "$1" == hotfix-*-7010 ]]; then
-		PATCH_FOLDER=hotfix
-		PATCH_FILE=liferay-$1.zip
-	elif [[ "$1" == hotfix-* ]]; then
-		PATCH_FOLDER=hotfix
-		PATCH_FILE=liferay-$1-7010.zip
 	elif [[ "$1" == liferay-fix-pack-portal-* ]]; then
 		PATCH_FOLDER=portal
 
