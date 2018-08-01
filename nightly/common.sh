@@ -32,6 +32,7 @@ checkservicepack() {
 	SERVICE_PACKS[de-30]=7.0.10.5
 	SERVICE_PACKS[de-32]=7.0.10.6
 	SERVICE_PACKS[de-40]=7.0.10.7
+	SERVICE_PACKS[de-50]=7.0.10.8
 
 	if [[ ${PATCH_ID} == liferay-fix-pack-portal-* ]]; then
 		closestservicepack $(echo "${PATCH_ID}" | cut -d'-' -f 4-)
