@@ -28,12 +28,12 @@ Initial Setup
 
 	cd /path/to/lps-dockerfiles
 
-4. Run the following command to create local images named ``mcd-nightly-jdk7`` and ``mcd-nightly-jdk8``.
+4. Run the following command to create local images named ``nightly-ibm8``, ``mcd-nightly-jdk7``, ``mcd-nightly-jdk8``, and ``nightly-wildfly10``.
 
 .. code-block:: bash
 
 	cd nightly
-	./build.sh
+	./build_all.sh
 
 Basic Usage
 -----------
