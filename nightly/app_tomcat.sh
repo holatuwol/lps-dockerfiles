@@ -185,7 +185,7 @@ makesymlink() {
 	echo "Adding symbolic link to $CATALINA_HOME"
 	ln -s $CATALINA_HOME ${LIFERAY_HOME}/tomcat
 
-	cp -f ${LIFERAY_HOME}/setenv.sh ${LIFERAY_HOME}/bin/
+	cp -f ${HOME}/setenv.sh ${CATALINA_HOME}/bin/
 }
 
 setup_ssl() {
