@@ -70,13 +70,13 @@ downloadbranchmirror() {
 			return 0
 		fi
 
-		REQUEST_URL="$LIFERAY_FILES_MIRROR/private/ee/portal/upstream-$BASE_BRANCH/latest/liferay-portal-tomcat-$BASE_BRANCH.zip"
+		REQUEST_URL="$LIFERAY_FILES_MIRROR/private/ee/portal/snapshot-$BASE_BRANCH/latest/liferay-portal-tomcat-$BASE_BRANCH.zip"
 	else
 		if [ "" == "$LIFERAY_RELEASES_MIRROR" ]; then
 			LIFERAY_RELEASES_MIRROR=https://releases.liferay.com
 		fi
 
-		REQUEST_URL="$LIFERAY_RELEASES_MIRROR/portal/upstream-$BASE_BRANCH/latest/liferay-portal-tomcat-$BASE_BRANCH.zip"
+		REQUEST_URL="$LIFERAY_RELEASES_MIRROR/portal/snapshot-$BASE_BRANCH/latest/liferay-portal-tomcat-$BASE_BRANCH.zip"
 	fi
 
 	BUILD_NAME="$SHORT_NAME.zip"
