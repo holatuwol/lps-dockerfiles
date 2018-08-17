@@ -189,6 +189,10 @@ makesymlink() {
 }
 
 setup_ssl() {
+	if [ -d /opt/ibm/java ]; then
+		return 0
+	fi
+
 	if [ -f ${CATALINA_HOME}/cacerts ]; then
 		return 0
 	fi
@@ -226,5 +230,5 @@ startserver() {
 	sed -i.bak "s/-Xms[^ ]*/-Xms${JVM_HEAP_SIZE}/g" ${LIFERAY_HOME}/tomcat/bin/setenv.sh
 	sed -i.bak "s/-Xmx[^ ]*/-Xmx${JVM_HEAP_SIZE}/g" ${LIFERAY_HOME}/tomcat/bin/setenv.sh
 
-	JPDA_ADDRESS='0.0.0.0:8000' ${LIFERAY_HOME}/tomcat/bin/catalina.sh jpda run
+	JVM_HEAP_SIZE="${JVM_HEAP_SIZE}" JPDA_ADDRESS='0.0.0.0:8000' ${LIFERAY_HOME}/tomcat/bin/catalina.sh jpda run
 }
