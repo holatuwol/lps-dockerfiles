@@ -233,6 +233,9 @@ downloadtag() {
 
 envreload() {
 	if [ -f ${HOME}/.oldenv ]; then
+		echo 'Loading old environment variables'
+		cat ${HOME}/.oldenv
+
 		source ${HOME}/.oldenv
 
 		return 0
@@ -250,7 +253,8 @@ envreload() {
 	checkservicepack
 	downloadbuild
 
-	env | grep -v '^PWD=' > ${HOME}/.oldenv
+	echo 'Saving environment variables'
+	env | grep -v '^PWD=' | tee ${HOME}/.oldenv
 }
 
 getbuild() {
