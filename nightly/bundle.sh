@@ -18,6 +18,12 @@ if [ -d /opt/ibm/java ]; then
 	rm -f /opt/liferay/tomcat/webapps/ROOT/WEB-INF/classes/META-INF/MANIFEST.MF
 fi
 
+if [ ! -f ${CATALINA_HOME}/bin/setenv.sh ]; then
+	cp -f ${HOME}/setenv.sh ${CATALINA_HOME}/bin/
+elif [ "" == "$(grep -F "${HOME}/setenv.sh" ${CATALINA_HOME}/bin/setenv.sh)" ]; then
+	echo -e "\n\n. ${HOME}/setenv.sh" >> ${CATALINA_HOME}/bin/setenv.sh
+fi
+
 # Setup SSH and clustering
 
 create_keystore
