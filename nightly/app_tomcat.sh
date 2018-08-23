@@ -84,7 +84,12 @@ downloadbranchmirror() {
 	echo "Downloading snapshot for $SHORT_NAME"
 
 	getbuild $REQUEST_URL ${BUILD_NAME}
-	NEW_BASELINE=$(unzip -c -qq ${LIFERAY_HOME}/${BUILD_NAME} liferay-portal-${BASE_BRANCH}/.githash)
+
+	if [ "" != "$(unzip -l ${LIFERAY_HOME}/${BUILD_NAME} | grep -F .githash)" ]; then
+		NEW_BASELINE=$(unzip -c -qq ${LIFERAY_HOME}/${BUILD_NAME} liferay-portal-${BASE_BRANCH}/.githash)
+	else
+		NEW_BASELINE=$(unzip -c -qq ${LIFERAY_HOME}/${BUILD_NAME} liferay-portal-${BASE_BRANCH}/git-commit)
+	fi
 }
 
 downloadreleasebuild() {
@@ -153,21 +158,30 @@ extract() {
 		unzip -qq "${BUILD_NAME}"
 	fi
 
-	local OLD_CATALINA_HOME=$(find . -type d -name 'tomcat*' | sort | head -1)
+	local OLD_LIFERAY_HOME=$(find . -type d -name '.liferay-home' | sort | head -1)
 
-	if [ "" != "$OLD_CATALINA_HOME" ]; then
-		local OLD_LIFERAY_HOME=$(dirname "$OLD_CATALINA_HOME")
+	if [ "" == "$OLD_LIFERAY_HOME" ]; then
+		local OLD_CATALINA_HOME=$(find . -type d -name 'tomcat*' | sort | head -1)
 
-		if [ "." != "$OLD_LIFERAY_HOME" ]; then
-			for file in $(find $OLD_LIFERAY_HOME -mindepth 1 -maxdepth 1); do
-				if [ ! -e "$(basename $file)" ]; then
-					mv $file .
-				fi
-			done
-
-			rm -rf $OLD_LIFERAY_HOME
+		if [ "" != "${OLD_CATALINA_HOME}" ]; then
+			OLD_LIFERAY_HOME=$(dirname "$OLD_CATALINA_HOME")
 		fi
 	fi
+
+	if [ "" == "$OLD_LIFERAY_HOME" ]; then
+		echo "Unable to find LIFERAY_HOME for archive of ${BUILD_NAME}"
+		exit 1
+	fi
+
+	echo "Moving files from ${OLD_LIFERAY_HOME} to ${PWD}"
+
+	for file in $(find $OLD_LIFERAY_HOME -mindepth 1 -maxdepth 1); do
+		if [ ! -e "$(basename $file)" ]; then
+			mv $file .
+		fi
+	done
+
+	rm -rf $OLD_LIFERAY_HOME
 
 	if [ "" != "$BUILD_NAME" ]; then
 		rm $BUILD_NAME
