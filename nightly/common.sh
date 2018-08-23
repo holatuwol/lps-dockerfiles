@@ -365,7 +365,7 @@ parsearg() {
 		fi
 	fi
 
-	if [[ "$1" == *.x ]] || [ "$1" == "master" ]; then
+	if [[ "$1" == *.x ]] || [[ "$1" == *.x-private ]] || [ "$1" == "master" ] || [ "$1" == "master-private" ]; then
 		BASE_BRANCH=$1
 		return 0
 	fi
