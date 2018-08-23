@@ -223,14 +223,6 @@ downloadlicense() {
 	REQUEST_URL="$LIFERAY_FILES_MIRROR/private/ee/portal/${RELEASE_ID}/"
 }
 
-downloadtag() {
-	NEW_BASELINE=$BASE_TAG
-	BUILD_NAME=${BASE_TAG}.tar.gz
-
-	echo "Downloading snapshot for $BASE_TAG"
-	getbuild "${TAG_ARCHIVE_MIRROR}/${BUILD_NAME}"
-}
-
 envreload() {
 	if [ -f ${HOME}/.oldenv ]; then
 		echo 'Loading old environment variables'

@@ -45,21 +45,41 @@ downloadbranchbuild() {
 	BUILD_NAME=$(curl -s --connect-timeout 2 $BRANCH_ARCHIVE_MIRROR/ | grep -o '<a href="'${SHORT_NAME}'-[0-9]*.tar.gz">' | cut -d'"' -f 2 | sort | tail -1)
 
 	if [ "" == "$BUILD_NAME" ]; then
+		echo "Failed to find ${SHORT_NAME} on ${BRANCH_ARCHIVE_MIRROR}"
 		return 0
 	fi
 
-	# Acquire the hash and make sure we have it
+	# Set the hash as an environment variable
 
-	BUILD_LOG=$(echo $BUILD_NAME | cut -d'.' -f 1).log
-	UPDATE_TIME=$(echo $BUILD_NAME | cut -d'.' -f 1 | cut -d'-' -f 2)
-	NEW_BASELINE=$(curl -r 0-49 -s ${BRANCH_ARCHIVE_MIRROR}/${BUILD_LOG} | tail -1)
+	if [ -f /rdbuild/${BUILD_NAME} ] && [ -f /rdbuild/${BUILD_NAME}.githash ]; then
+		NEW_BASELINE=$(cat /rdbuild/${BUILD_NAME}.githash)
+	else
+		BUILD_LOG=$(echo $BUILD_NAME | cut -d'.' -f 1).log
+		UPDATE_TIME=$(echo $BUILD_NAME | cut -d'.' -f 1 | cut -d'-' -f 2)
+		NEW_BASELINE=$(curl -r 0-49 -s ${BRANCH_ARCHIVE_MIRROR}/${BUILD_LOG} | tail -1)
+	fi
+
+	# Skip downloading the actual build if we already have it
+
+	if [ -d /rdbuild ]; then
+		if [ -f /rdbuild/${BUILD_NAME} ]; then
+			cp /rdbuild/${BUILD_NAME} ${LIFERAY_HOME}/
+			return 0
+		fi
+
+		find /rdbuild -name "${SHORT_NAME}*.tar.gz*" -exec rm {} +
+	fi
 
 	# Download the build if we haven't done so already, making
 	# sure to clean up past builds to not take up too much space
 
 	echo "Downloading snapshot for $SHORT_NAME ($NEW_BASELINE)"
 
-	getbuild "${BRANCH_ARCHIVE_MIRROR}/${BUILD_NAME}"
+	getbuild "${BRANCH_ARCHIVE_MIRROR}/${BUILD_NAME}" "${BUILD_NAME}"
+
+	if [ -d /rdbuild ]; then
+		cp ${LIFERAY_HOME}/${BUILD_NAME} /rdbuild/
+	fi
 }
 
 downloadbranchmirror() {
@@ -81,14 +101,29 @@ downloadbranchmirror() {
 
 	BUILD_NAME="$SHORT_NAME.zip"
 
+	local ARCHIVE_NAME="${SHORT_NAME}-$(date '+%Y%m%d').zip"
+
+	if [ -d /rdbuild ]; then
+		if [ -f /rdbuild/${ARCHIVE_NAME} ]; then
+			cp "/rdbuild/${ARCHIVE_NAME}" "${LIFERAY_HOME}/${BUILD_NAME}"
+			return 0
+		fi
+
+		find /rdbuild -name "${SHORT_NAME}*.zip*" -exec rm {} +
+	fi
+
 	echo "Downloading snapshot for $SHORT_NAME"
 
-	getbuild $REQUEST_URL ${BUILD_NAME}
+	getbuild "${REQUEST_URL}" "${BUILD_NAME}"
 
 	if [ "" != "$(unzip -l ${LIFERAY_HOME}/${BUILD_NAME} | grep -F .githash)" ]; then
 		NEW_BASELINE=$(unzip -c -qq ${LIFERAY_HOME}/${BUILD_NAME} liferay-portal-${BASE_BRANCH}/.githash)
 	else
 		NEW_BASELINE=$(unzip -c -qq ${LIFERAY_HOME}/${BUILD_NAME} liferay-portal-${BASE_BRANCH}/git-commit)
+	fi
+
+	if [ -d /rdbuild ]; then
+		cp "${LIFERAY_HOME}/${BUILD_NAME}" "/rdbuild/${ARCHIVE_NAME}"
 	fi
 }
 
@@ -137,10 +172,27 @@ downloadreleasebuild() {
 
 	echo "Downloading $RELEASE_ID release (used for patching)"
 
-	getbuild $REQUEST_URL $BUILD_NAME
+	getbuild "${REQUEST_URL}" "${BUILD_NAME}"
 
 	if [ -d /release ]; then
 		cp ${LIFERAY_HOME}/${BUILD_NAME} /release/${BUILD_CANDIDATE}
+	fi
+}
+
+downloadtag() {
+	NEW_BASELINE=$BASE_TAG
+	BUILD_NAME=${BASE_TAG}.tar.gz
+
+	if [ -f /rdbuild/${BUILD_NAME} ]; then
+		cp /rdbuild/${BUILD_NAME} ${LIFERAY_HOME}/
+		return 0
+	fi
+
+	echo "Downloading snapshot for $BASE_TAG"
+	getbuild "${TAG_ARCHIVE_MIRROR}/${BUILD_NAME}"
+
+	if [ -d /rdbuild ]; then
+		cp "${LIFERAY_HOME}/${BUILD_NAME}" /rdbuild/
 	fi
 }
 
