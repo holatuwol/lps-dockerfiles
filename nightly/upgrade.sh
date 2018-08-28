@@ -6,7 +6,7 @@ makesymlink
 copyextras
 
 if [ -d /build ]; then
-	rsync -arq --exclude=tomcat /build/ ${LIFERAY_HOME}/
+	rsync -arq --exclude=tomcat --exclude=logs /build/ ${LIFERAY_HOME}/
 
 	if [ -d /build/tomcat ] && [ "" == "$(find /build/tomcat -name catalina.sh)" ]; then
 		rsync -arq /build/tomcat/ ${LIFERAY_HOME}/tomcat/

@@ -190,7 +190,7 @@ downloadbuild() {
 	if [ "false" == "${DOWNLOAD_BUILD}" ]; then
 		return 0
 	elif [ -d /build ] && [ "" != "$(find /build -name catalina.sh)" ]; then
-		rsync -arq --exclude=tomcat /build/ ${LIFERAY_HOME}/
+		rsync -arq --exclude=tomcat --exclude=logs /build/ ${LIFERAY_HOME}/
 
 		return 0
 	elif [ "" != "$(find ${LIFERAY_HOME} -name catalina.sh)" ]; then
