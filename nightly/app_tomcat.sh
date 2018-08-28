@@ -106,15 +106,16 @@ downloadbranchmirror() {
 	if [ -d /rdbuild ]; then
 		if [ -f /rdbuild/${ARCHIVE_NAME} ]; then
 			cp "/rdbuild/${ARCHIVE_NAME}" "${LIFERAY_HOME}/${BUILD_NAME}"
-			return 0
+		else
+			find /rdbuild -name "${SHORT_NAME}*.zip*" -exec rm {} +
 		fi
-
-		find /rdbuild -name "${SHORT_NAME}*.zip*" -exec rm {} +
 	fi
 
-	echo "Downloading snapshot for $SHORT_NAME"
+	if [ ! -f "${LIFERAY_HOME}/${BUILD_NAME}" ]; then
+		echo "Downloading snapshot for $SHORT_NAME"
 
-	getbuild "${REQUEST_URL}" "${BUILD_NAME}"
+		getbuild "${REQUEST_URL}" "${BUILD_NAME}"
+	fi
 
 	if [ "" != "$(unzip -l ${LIFERAY_HOME}/${BUILD_NAME} | grep -F .githash)" ]; then
 		NEW_BASELINE=$(unzip -c -qq ${LIFERAY_HOME}/${BUILD_NAME} liferay-portal-${BASE_BRANCH}/.githash)
