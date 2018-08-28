@@ -245,12 +245,14 @@ extract() {
 
 makesymlink() {
 	if [ -h ${LIFERAY_HOME}/tomcat ]; then
+		CATALINA_HOME=${LIFERAY_HOME}/tomcat
 		return 0
 	fi
 
 	CATALINA_HOME=$(find ${LIFERAY_HOME} -mindepth 1 -maxdepth 1 -name 'tomcat*')
 	echo "Adding symbolic link to $CATALINA_HOME"
-	ln -s $CATALINA_HOME ${LIFERAY_HOME}/tomcat
+	ln -s ${CATALINA_HOME} ${LIFERAY_HOME}/tomcat
+	CATALINA_HOME=${LIFERAY_HOME}/tomcat
 }
 
 setup_ssl() {
