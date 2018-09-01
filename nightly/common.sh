@@ -212,6 +212,18 @@ downloadbuild() {
 }
 
 downloadlicense() {
+	if [ -d /build/deploy ] && [ "" != "$(find /build/deploy -name '*.xml')" ]; then
+		return 0
+	fi
+
+	if [ -d ${LIFERAY_HOME}/deploy ] && [ "" != "$(find ${LIFERAY_HOME}/deploy -name '*.xml')" ]; then
+		return 0
+	fi
+
+	if [ -d /build/data/license ] || [ -d ${LIFERAY_HOME}/data/license ]; then
+		return 0
+	fi
+
 	local RELEASE_ID_NUMERIC=$(echo "$RELEASE_ID" | cut -d'.' -f 1,2,3 | tr -d '.')
 	local LICENSE_URL="${LICENSE_MIRROR}/${RELEASE_ID_NUMERIC}.xml"
 
