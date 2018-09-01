@@ -34,14 +34,10 @@ if [ -f ${LIFERAY_HOME}/portal-ext.properties ]; then
 	sed -i.bak "s/localhost/${BASE_IP}.1/g" ${LIFERAY_HOME}/portal-ext.properties
 fi
 
-tcp_cluster
-
 # Start Liferay
-
-echo "Starting Liferay"
 
 if [ "" == "${JVM_HEAP_SIZE}" ]; then
 	JVM_HEAP_SIZE='2g'
 fi
 
-startserver
+tcp_cluster && startserver

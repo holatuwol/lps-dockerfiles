@@ -491,27 +491,43 @@ tcp_cluster() {
 		echo "Using already extracted tcp.xml"
 		rm -f tcp.xml tcp.xml.jdbcping
 		mv tcp.xml.tcpping tcp.xml
-	elif [ -f "${LIFERAY_HOME}/osgi/marketplace/Liferay Foundation.lpkg" ]; then
-		echo "Extracting tcp.xml from Liferay Foundation.lpkg"
-		unzip -qq -j "${LIFERAY_HOME}/osgi/marketplace/Liferay Foundation.lpkg" 'com.liferay.portal.cluster.multiple*.jar'
-		unzip -qq -j com.liferay.portal.cluster.multiple*.jar 'lib/jgroups*'
-		rm com.liferay.portal.cluster.multiple*.jar
-		unzip -qq -j jgroups*.jar tcp.xml
-		rm jgroups*.jar
 	elif [ -f ${LIFERAY_HOME}/osgi/portal/com.liferay.portal.cluster.multiple.jar ]; then
 		echo "Extracting tcp.xml from com.liferay.portal.cluster.multiple.jar"
 		unzip -qq -j ${LIFERAY_HOME}/osgi/portal/com.liferay.portal.cluster.multiple.jar 'lib/jgroups*'
 		unzip -qq -j jgroups*.jar tcp.xml
 		rm jgroups*.jar
 	else
-		JGROUPS_JAR=$(find ${LIFERAY_HOME} -name 'jgroups.jar' | grep -F '/WEB-INF/lib/jgroups.jar')
+		local EXTRACTED_TCP_XML=
 
-		if [ "" != "${JGROUPS_JAR}" ]; then
-			echo "Extracting tcp.xml from WEB-INF/lib/jgroups.jar"
-			unzip -qq -j tomcat/webapps/ROOT/WEB-INF/lib/jgroups.jar tcp.xml
-		else
-			echo 'Clustering code not available in this release of Liferay'
-			return 0
+		if [ -d ${LIFERAY_HOME}/osgi/marketplace ]; then
+			while read -r lpkg; do
+				if [ "" == "$(unzip -l "${lpkg}" | grep -F 'com.liferay.portal.cluster.multiple')" ]; then
+					continue
+				fi
+
+				echo "Extracting tcp.xml from ${lpkg}"
+				unzip -qq -j "${lpkg}" 'com.liferay.portal.cluster.multiple*.jar'
+				unzip -qq -j com.liferay.portal.cluster.multiple*.jar 'lib/jgroups*'
+				rm com.liferay.portal.cluster.multiple*.jar
+				unzip -qq -j jgroups*.jar tcp.xml
+				rm jgroups*.jar
+
+				EXTRACTED_TCP_XML=true
+
+				break
+			done <<< "$(find ${LIFERAY_HOME}/osgi/marketplace -name '*.lpkg')"
+		fi
+
+		if [ "" == "${EXTRACTED_TCP_XML}" ]; then
+			JGROUPS_JAR=$(find ${LIFERAY_HOME} -name 'jgroups.jar' | grep -F '/WEB-INF/lib/jgroups.jar')
+
+			if [ "" != "${JGROUPS_JAR}" ]; then
+				echo "Extracting tcp.xml from WEB-INF/lib/jgroups.jar"
+				unzip -qq -j tomcat/webapps/ROOT/WEB-INF/lib/jgroups.jar tcp.xml
+			else
+				echo 'Clustering code not available in this release of Liferay'
+				return 1
+			fi
 		fi
 	fi
 
