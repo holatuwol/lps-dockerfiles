@@ -4,6 +4,7 @@ cp -f ../nightly/app_tomcat.sh .
 cp -f ../nightly/bundle.sh .
 cp -f ../nightly/common.sh .
 cp -f ../nightly/entrypoint.sh .
+cp -f ../nightly/setenv.sh .
 cp -f ../nightly/upgrade.sh .
 cp -f ../nightly/sslconfig.cnf.base .
 

@@ -3,5 +3,6 @@ build.sh
 bundle.sh
 common.sh
 entrypoint.sh
+setenv.sh
 upgrade.sh
 sslconfig.cnf.base
