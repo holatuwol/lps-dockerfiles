@@ -1,7 +1,13 @@
 #!/bin/sh
 
 setup_tcp_initial_hosts() {
+	CATALINA_OPTS="${CATALINA_OPTS} -Djgroups.bind_addr='$(hostname -I)'"
+
 	if ! test -f ${LIFERAY_HOME}/tcp.xml; then
+		return 0
+	fi
+
+	if [ "" != "$(grep -F TCPPING ${LIFERAY_HOME}/tcp.xml)" ]; then
 		return 0
 	fi
 
