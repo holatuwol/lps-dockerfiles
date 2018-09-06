@@ -1,0 +1,152 @@
+# Define user organizational unit
+
+dn: ou=people,dc=example,dc=org
+objectClass: organizationalUnit
+ou: people
+
+# Create the test administrator user
+
+dn: cn=test,ou=people,dc=example,dc=org
+objectclass: top
+objectclass: person
+objectclass: organizationalPerson
+objectClass: inetOrgPerson
+givenname: Test
+sn: Test
+cn: test
+uid: test
+telephonenumber: 543-3729
+userpassword: test
+mail: test@liferay.com
+
+# Create other sample users
+
+dn: cn=test0,ou=people,dc=example,dc=org
+objectclass: top
+objectclass: person
+objectclass: organizationalPerson
+objectClass: inetOrgPerson
+givenname: Zero
+sn: Test
+cn: test0
+uid: test0
+telephonenumber: 543-3729
+userpassword: test
+mail: test0@liferay.com
+
+dn: cn=test1,ou=people,dc=example,dc=org
+objectclass: top
+objectclass: person
+objectclass: organizationalPerson
+objectClass: inetOrgPerson
+givenname: One
+sn: Test
+cn: test1
+uid: test1
+telephonenumber: 543-3729
+userpassword: test
+mail: test1@liferay.com
+
+dn: cn=test2,ou=people,dc=example,dc=org
+objectclass: top
+objectclass: person
+objectclass: organizationalPerson
+objectClass: inetOrgPerson
+givenname: Two
+sn: Test
+cn: test2
+uid: test2
+telephonenumber: 543-3729
+userpassword: test
+mail: test2@liferay.com
+
+dn: cn=test3,ou=people,dc=example,dc=org
+objectclass: top
+objectclass: person
+objectclass: organizationalPerson
+objectClass: inetOrgPerson
+givenname: Three
+sn: Test
+cn: test3
+uid: test3
+telephonenumber: 543-3729
+userpassword: test
+mail: test3@liferay.com
+
+dn: cn=test4,ou=people,dc=example,dc=org
+objectclass: top
+objectclass: person
+objectclass: organizationalPerson
+objectClass: inetOrgPerson
+givenname: Four
+sn: Test
+cn: test4
+uid: test4
+telephonenumber: 543-3729
+userpassword: test
+mail: test4@liferay.com
+
+dn: cn=test5,ou=people,dc=example,dc=org
+objectclass: top
+objectclass: person
+objectclass: organizationalPerson
+objectClass: inetOrgPerson
+givenname: Five
+sn: Test
+cn: test5
+uid: test5
+telephonenumber: 543-3729
+userpassword: test
+mail: test5@liferay.com
+
+dn: cn=test6,ou=people,dc=example,dc=org
+objectclass: top
+objectclass: person
+objectclass: organizationalPerson
+objectClass: inetOrgPerson
+givenname: Six
+sn: Test
+cn: test6
+uid: test6
+telephonenumber: 543-3729
+userpassword: test
+mail: test6@liferay.com
+
+dn: cn=test7,ou=people,dc=example,dc=org
+objectclass: top
+objectclass: person
+objectclass: organizationalPerson
+objectClass: inetOrgPerson
+givenname: Seven
+sn: Test
+cn: test7
+uid: test7
+telephonenumber: 543-3729
+userpassword: test
+mail: test7@liferay.com
+
+dn: cn=test8,ou=people,dc=example,dc=org
+objectclass: top
+objectclass: person
+objectclass: organizationalPerson
+objectClass: inetOrgPerson
+givenname: Eight
+sn: Test
+cn: test8
+uid: test8
+telephonenumber: 543-3729
+userpassword: test
+mail: test8@liferay.com
+
+dn: cn=test9,ou=people,dc=example,dc=org
+objectclass: top
+objectclass: person
+objectclass: organizationalPerson
+objectClass: inetOrgPerson
+givenname: Nine
+sn: Test
+cn: test9
+uid: test9
+telephonenumber: 543-3729
+userpassword: test
+mail: test9@liferay.com
