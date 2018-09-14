@@ -23,4 +23,9 @@ setup_tcp_initial_hosts
 
 CATALINA_OPTS="${CATALINA_OPTS} -Dfile.encoding=UTF-8 -Djava.net.preferIPv4Stack=true -Duser.timezone=GMT"
 CATALINA_OPTS="${CATALINA_OPTS} -Xms${JVM_HEAP_SIZE} -Xmx${JVM_HEAP_SIZE}"
-CATALINA_OPTS="${CATALINA_OPTS} -XX:MaxMetaspaceSize=${JVM_META_SIZE} -XX:MaxPermSize=${JVM_META_SIZE}"
+
+if [ "" != "$(java -XX:+PrintFlagsFinal 2>/dev/null | grep -F MaxMetaspaceSize)" ]; then
+	CATALINA_OPTS="${CATALINA_OPTS} -XX:MaxMetaspaceSize=${JVM_META_SIZE}"
+else
+	CATALINA_OPTS="${CATALINA_OPTS} -XX:MaxPermSize=${JVM_META_SIZE}"
+fi
