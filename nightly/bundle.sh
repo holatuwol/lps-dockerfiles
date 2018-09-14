@@ -40,4 +40,8 @@ if [ "" == "${JVM_HEAP_SIZE}" ]; then
 	JVM_HEAP_SIZE='2g'
 fi
 
+if [ "" == "${JVM_META_SIZE}" ]; then
+	JVM_META_SIZE='512m'
+fi
+
 tcp_cluster && startserver
