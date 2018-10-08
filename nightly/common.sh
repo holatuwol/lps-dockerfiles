@@ -327,10 +327,10 @@ getpatchingtool() {
 	echo "Checking for latest patching tool at ${REQUEST_URL}"
 	local PATCHING_TOOL_VERSION=
 
-	if [[ "$RELEASE_ID" == 7.0.10* ]]; then
-		PATCHING_TOOL_VERSION=$(curl $REQUEST_URL | grep -o '<a href="patching-tool-2\.[^"]*' | cut -d'"' -f 2 | grep -F internal | sort | tail -1)
-	else
+	if [[ "$RELEASE_ID" == 6.2.10* ]]; then
 		PATCHING_TOOL_VERSION=$(curl $REQUEST_URL | grep -o '<a href="patching-tool-1\.[^"]*' | cut -d'"' -f 2 | grep -F internal | sort | tail -1)
+	else
+		PATCHING_TOOL_VERSION=$(curl $REQUEST_URL | grep -o '<a href="patching-tool-2\.[^"]*' | cut -d'"' -f 2 | grep -F internal | sort | tail -1)
 	fi
 
 	if [ -f $PATCHING_TOOL_VERSION ]; then
