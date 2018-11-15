@@ -374,8 +374,18 @@ parsearg() {
 		return 0
 	fi
 
-	if [[ "$1" == 7.1.* ]] || [[ "$1" == 7.0.* ]] || [[ "$1" == 6.2.* ]] || [[ "$1" == 6.1.* ]]; then
+	if [[ "$1" == *x ]] || [[ "$1" == *x-private ]]; then
+		BASE_BRANCH=$(echo $1 | sed 's/^\([0-9]*\)\([0-9]\)x/\1.\2.x/')
+		return 0
+	fi
+
+	if [ "" != "$(echo $1 | grep -o '^[0-9]*\.[0-9]*')" ]; then
 		RELEASE_ID=$1
+		return 0
+	fi
+
+	if [ "" != "$(echo $1 | grep -o '^[0-9]*$')" ]; then
+		RELEASE_ID=$(echo $1 | sed 's/^\([0-9]*\)\([0-9]\)\([0-9][0-9]\)$/\1.\2.\3/')
 		return 0
 	fi
 
