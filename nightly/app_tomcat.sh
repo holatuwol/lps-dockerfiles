@@ -10,16 +10,23 @@ create_keystore() {
 	fi
 
 	local BASE_IP=$(hostname -I | cut -d'.' -f 1,2,3)
+	local COPY_KEYSTORE=
 
-	cp /home/liferay/sslconfig.cnf.base ${LIFERAY_HOME}/sslconfig.cnf
-	echo '' >> ${LIFERAY_HOME}/sslconfig.cnf
+	if [ -f /build/server.crt ]; then
+		COPY_KEYSTORE=/build/server.crt
 
-	seq 255 | awk '{ print "IP." $1 " = '${BASE_IP}'." $1 }' >> ${LIFERAY_HOME}/sslconfig.cnf
-	echo "IP.256 = 127.0.0.1" >> ${LIFERAY_HOME}/sslconfig.cnf
+		cp /build/server.crt ${LIFERAY_HOME}/
+	else
+		cp /home/liferay/sslconfig.cnf.base ${LIFERAY_HOME}/sslconfig.cnf
+		echo '' >> ${LIFERAY_HOME}/sslconfig.cnf
 
-	echo | openssl req -config ${LIFERAY_HOME}/sslconfig.cnf -new -sha256 -newkey rsa:2048 \
-		-nodes -keyout ${LIFERAY_HOME}/server.key -x509 -days 365 \
-		-out ${LIFERAY_HOME}/server.crt
+		seq 255 | awk '{ print "IP." $1 " = '${BASE_IP}'." $1 }' >> ${LIFERAY_HOME}/sslconfig.cnf
+		echo "IP.256 = 127.0.0.1" >> ${LIFERAY_HOME}/sslconfig.cnf
+
+		echo | openssl req -config ${LIFERAY_HOME}/sslconfig.cnf -new -sha256 -newkey rsa:2048 \
+			-nodes -keyout ${LIFERAY_HOME}/server.key -x509 -days 365 \
+			-out ${LIFERAY_HOME}/server.crt
+	fi
 
 	openssl pkcs12 -export \
 		-in ${LIFERAY_HOME}/server.crt -inkey ${LIFERAY_HOME}/server.key -passin pass:'' \
@@ -29,7 +36,7 @@ create_keystore() {
 		-deststorepass changeit -destkeystore ${LIFERAY_HOME}/keystore \
 		-srckeystore ${LIFERAY_HOME}/server.p12 -srcstorepass '' -srcstoretype PKCS12 -alias tomcat
 
-	if [ -d /build/ ]; then
+	if [ -d /build/ ] && [ "" == "${COPY_KEYSTORE}" ]; then
 		cp -f ${LIFERAY_HOME}/server.crt /build/
 		cp -f ${LIFERAY_HOME}/keystore /build/
 	fi
