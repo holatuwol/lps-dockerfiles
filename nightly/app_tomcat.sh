@@ -12,10 +12,11 @@ create_keystore() {
 	local BASE_IP=$(hostname -I | cut -d'.' -f 1,2,3)
 	local COPY_KEYSTORE=
 
-	if [ -f /build/server.crt ]; then
+	if [ -f /build/server.crt ] && [ -f /build/server.key ]; then
 		COPY_KEYSTORE=/build/server.crt
 
 		cp /build/server.crt ${LIFERAY_HOME}/
+		cp /build/server.key ${LIFERAY_HOME}/
 	else
 		cp /home/liferay/sslconfig.cnf.base ${LIFERAY_HOME}/sslconfig.cnf
 		echo '' >> ${LIFERAY_HOME}/sslconfig.cnf
@@ -38,6 +39,7 @@ create_keystore() {
 
 	if [ -d /build/ ] && [ "" == "${COPY_KEYSTORE}" ]; then
 		cp -f ${LIFERAY_HOME}/server.crt /build/
+		cp -f ${LIFERAY_HOME}/server.key /build/
 		cp -f ${LIFERAY_HOME}/keystore /build/
 	fi
 }
