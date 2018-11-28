@@ -87,6 +87,17 @@ closestservicepack() {
 		done
 	fi
 
+	if [[ "${1}" == dxp-* ]]; then
+		for id in $(seq $(echo "${1}" | cut -d'-' -f 2) | tac); do
+			RELEASE_ID=${SERVICE_PACKS[dxp-${id}]}
+
+			if [ "" != "${RELEASE_ID}" ]; then
+				echo "${1} is closest to service pack ${RELEASE_ID}"
+				return 0
+			fi
+		done
+	fi
+
 	if [[ "${1}" == *-7110 ]]; then
 		RELEASE_ID=7.1.10
 		echo "Failed to guess the service pack for ${1}, assuming ${RELEASE_ID}"
@@ -124,19 +135,17 @@ copyextras() {
 		fi
 	fi
 
-	setpatchfile ${PATCH_ID}
+	local UP_TO_DATE=true
 
-	if [ "" == "${PATCH_FILE}" ]; then
-		echo "Unable to determine patch file for ${PATCH_ID}"
-		return 1
+	if [ -d ${LIFERAY_HOME}/patches ]; then
+		for file in ${LIFERAY_HOME}/patches/*; do
+			if [ ! -f ${LIFERAY_HOME}/patching-tool/patches/${file} ]; then
+				UP_TO_DATE=false
+			fi
+		done
 	fi
 
-	if [ -f ${LIFERAY_HOME}/patching-tool/patches/${PATCH_FILE} ]; then
-		echo "Using existing patch file ${PATCH_FILE}"
-		return 0
-	fi
-
-	if [ ! -f ${LIFERAY_HOME}/patching-tool/.uptodate ]; then
+	if [ "" == "${UP_TO_DATE}" ]; then
 		cd "${LIFERAY_HOME}"
 		rm -rf patching-tool
 		getpatchingtool
@@ -153,7 +162,6 @@ copyextras() {
 			./patching-tool.sh default auto-discovery ..
 		fi
 
-		touch .uptodate
 		cd -
 	fi
 
@@ -307,10 +315,6 @@ getbuild() {
 getpatch() {
 	setpatchfile $1
 
-	if [[ "${PATCH_FILE}" == liferay-hotfix-* ]]; then
-		PATCH_ID=
-	fi
-
 	if [ "" == "$PATCH_FILE" ]; then
 		if [ "" != "$1" ]; then
 			echo "Unable to determine patch file for $1"
@@ -319,28 +323,27 @@ getpatch() {
 		return 0
 	fi
 
-	if [ -f patches/${PATCH_FILE} ]; then
+	if [ -f ${LIFERAY_HOME}/patches/${PATCH_FILE} ] || [ -f ${LIFERAY_HOME}/patching-tool/patches/${PATCH_FILE} ]; then
 		echo "Using existing patch file ${PATCH_FILE}"
-		return 0
+	else
+		local RELEASE_ID_SHORT=$(echo "$RELEASE_ID" | cut -d'.' -f 1,2,3)
+		local REQUEST_URL="$LIFERAY_FILES_MIRROR/private/ee/fix-packs/${RELEASE_ID_SHORT}/${PATCH_FOLDER}/${PATCH_FILE}"
+
+		echo "Attempting to download ${REQUEST_URL}"
+		curl -o patches/${PATCH_FILE} "${REQUEST_URL}"
 	fi
 
-	if [ -f patches/${PATCH_FILE} ]; then
-		return 0
-	fi
-
-	local RELEASE_ID_SHORT=$(echo "$RELEASE_ID" | cut -d'.' -f 1,2,3)
-	local REQUEST_URL="$LIFERAY_FILES_MIRROR/private/ee/fix-packs/${RELEASE_ID_SHORT}/${PATCH_FOLDER}/${PATCH_FILE}"
-
-	echo "Attempting to download ${REQUEST_URL}"
-	curl -o patches/${PATCH_FILE} "${REQUEST_URL}"
+	local NEEDED_PATCH_ID=
 
 	if [[ "${PATCH_FILE}" == liferay-hotfix-*-7010.zip ]]; then
+		PATCH_ID=
 		NEEDED_PATCH_ID=$(unzip -c patches/${PATCH_FILE} fixpack_documentation.xml | grep requirements | grep -o 'de=[0-9]*' | cut -d'=' -f 2)
 
 		if [ "" != "${NEEDED_PATCH_ID}" ]; then
 			PATCH_ID=de-${NEEDED_PATCH_ID}
 		fi
 	elif [[ "${PATCH_FILE}" == liferay-hotfix-*-7110.zip ]]; then
+		PATCH_ID=
 		NEEDED_PATCH_ID=$(unzip -c patches/${PATCH_FILE} fixpack_documentation.xml | grep requirements | grep -o 'dxp=[0-9]*' | cut -d'=' -f 2)
 
 		if [ "" != "${NEEDED_PATCH_ID}" ]; then
