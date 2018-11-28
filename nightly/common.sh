@@ -10,6 +10,25 @@ checkservicepack() {
 		return 0
 	fi
 
+	if [[ ${PATCH_ID} == *hotfix* ]]; then
+		if [[ ${PATCH_ID} == *-7010 ]] || [[ ${PATCH_ID} == *-7010.zip ]]; then
+			RELEASE_ID=7.0.10
+		elif [[ ${PATCH_ID} == *-7110 ]] || [[ ${PATCH_ID} == *-7110.zip ]]; then
+			RELEASE_ID=7.1.10
+		fi
+
+		cd "${LIFERAY_HOME}"
+		mkdir -p patches
+		getpatch ${PATCH_ID}
+		cd -
+
+		RELEASE_ID=
+	fi
+
+	if [ "" == "${PATCH_ID}" ]; then
+		return 0
+	fi
+
 	echo "Checking service pack for ${PATCH_ID}"
 
 	declare -A SERVICE_PACKS
@@ -35,19 +54,14 @@ checkservicepack() {
 	SERVICE_PACKS[de-50]=7.0.10.8
 	SERVICE_PACKS[de-60]=7.0.10.9
 
-	if [[ ${PATCH_ID} == liferay-fix-pack-portal-* ]]; then
-		closestservicepack $(echo "${PATCH_ID}" | cut -d'-' -f 4-)
-	elif [[ ${PATCH_ID} == liferay-fix-pack-* ]]; then
-		closestservicepack $(echo "${PATCH_ID}" | cut -d'-' -f 4,5)
-	else
-		closestservicepack ${PATCH_ID}
-	fi
+	closestservicepack ${PATCH_ID}
 }
 
 closestservicepack() {
 	RELEASE_ID=${SERVICE_PACKS[${1}]}
 
 	if [ "" != "${RELEASE_ID}" ]; then
+		echo "Exactly matches service pack ${RELEASE_ID}"
 		return 0
 	fi
 
@@ -56,6 +70,7 @@ closestservicepack() {
 			RELEASE_ID=${SERVICE_PACKS[portal-${id}]}
 
 			if [ "" != "${RELEASE_ID}" ]; then
+				echo "${1} is closest to service pack ${RELEASE_ID}"
 				return 0
 			fi
 		done
@@ -66,6 +81,7 @@ closestservicepack() {
 			RELEASE_ID=${SERVICE_PACKS[de-${id}]}
 
 			if [ "" != "${RELEASE_ID}" ]; then
+				echo "${1} is closest to service pack ${RELEASE_ID}"
 				return 0
 			fi
 		done
@@ -73,16 +89,19 @@ closestservicepack() {
 
 	if [[ "${1}" == *-7110 ]]; then
 		RELEASE_ID=7.1.10
+		echo "Failed to guess the service pack for ${1}, assuming ${RELEASE_ID}"
 		return 0
 	fi
 
 	if [[ "${1}" == *-7010 ]]; then
 		RELEASE_ID=7.0.10
+		echo "Failed to guess the service pack for ${1}, assuming ${RELEASE_ID}"
 		return 0
 	fi
 
 	if [[ "${1}" == *-6210 ]]; then
 		RELEASE_ID=6.2.10
+		echo "Failed to guess the service pack for ${1}, assuming ${RELEASE_ID}"
 		return 0
 	fi
 }
@@ -288,6 +307,10 @@ getbuild() {
 getpatch() {
 	setpatchfile $1
 
+	if [[ "${PATCH_FILE}" == liferay-hotfix-* ]]; then
+		PATCH_ID=
+	fi
+
 	if [ "" == "$PATCH_FILE" ]; then
 		if [ "" != "$1" ]; then
 			echo "Unable to determine patch file for $1"
@@ -311,13 +334,17 @@ getpatch() {
 	echo "Attempting to download ${REQUEST_URL}"
 	curl -o patches/${PATCH_FILE} "${REQUEST_URL}"
 
-	if [[ "$PATCH_FILE" == liferay-hotfix-*-7010.zip ]]; then
-		local NEEDED_DE_VERSION=$(unzip -c patches/${PATCH_FILE} fixpack_documentation.xml | grep requirements | grep -o 'de=[0-9]*' | cut -d'=' -f 2)
+	if [[ "${PATCH_FILE}" == liferay-hotfix-*-7010.zip ]]; then
+		NEEDED_PATCH_ID=$(unzip -c patches/${PATCH_FILE} fixpack_documentation.xml | grep requirements | grep -o 'de=[0-9]*' | cut -d'=' -f 2)
 
-		if [ "" != "${NEEDED_DE_VERSION}" ]; then
-			getpatch de-${NEEDED_DE_VERSION}
-		else
-			echo 'Unable to determine needed DE release from fixpack_documentation.xml'
+		if [ "" != "${NEEDED_PATCH_ID}" ]; then
+			PATCH_ID=de-${NEEDED_PATCH_ID}
+		fi
+	elif [[ "${PATCH_FILE}" == liferay-hotfix-*-7110.zip ]]; then
+		NEEDED_PATCH_ID=$(unzip -c patches/${PATCH_FILE} fixpack_documentation.xml | grep requirements | grep -o 'dxp=[0-9]*' | cut -d'=' -f 2)
+
+		if [ "" != "${NEEDED_PATCH_ID}" ]; then
+			PATCH_ID=dxp-${NEEDED_PATCH_ID}
 		fi
 	fi
 }
@@ -409,11 +436,35 @@ setpatchfile() {
 	PATCH_FOLDER=
 	PATCH_FILE=
 
-	if [[ "$1" == hotfix-*-6210 ]] || [[ "$1" == hotfix-*-7010 ]] || [[ "$1" == hotfix-*-7110 ]]; then
+	if [[ "$1" == hotfix-* ]]; then
 		PATCH_FOLDER=hotfix
 		PATCH_FILE=liferay-$1.zip
+	elif [[ "$1" == liferay-hotfix-* ]]; then
+		PATCH_FOLDER=hotfix
+
+		if [[ "$1" == *.zip ]]; then
+			PATCH_FILE=$1
+		else
+			PATCH_FILE=$1.zip
+		fi
 	elif [[ "$1" == liferay-fix-pack-portal-* ]]; then
 		PATCH_FOLDER=portal
+
+		if [[ "$1" == *.zip ]]; then
+			PATCH_FILE=$1
+		else
+			PATCH_FILE=$1.zip
+		fi
+	elif [[ "$1" == liferay-fix-pack-de-* ]]; then
+		PATCH_FOLDER=de
+
+		if [[ "$1" == *.zip ]]; then
+			PATCH_FILE=$1
+		else
+			PATCH_FILE=$1.zip
+		fi
+	elif [[ "$1" == liferay-fix-pack-dxp-* ]]; then
+		PATCH_FOLDER=de
 
 		if [[ "$1" == *.zip ]]; then
 			PATCH_FILE=$1
@@ -433,22 +484,9 @@ setpatchfile() {
 	elif [[ "$1" == de-* ]]; then
 		PATCH_FOLDER=de
 		PATCH_FILE=liferay-fix-pack-$1-7010.zip
-	elif [[ "$1" == liferay-fix-pack-* ]]; then
-		PATCH_FOLDER=de
-
-		if [[ "$1" == *.zip ]]; then
-			PATCH_FILE=$1
-		else
-			PATCH_FILE=$1.zip
-		fi
-	elif [[ "$1" == liferay-hotfix-* ]]; then
-		PATCH_FOLDER=hotfix
-
-		if [[ "$1" == *.zip ]]; then
-			PATCH_FILE=$1
-		else
-			PATCH_FILE=$1.zip
-		fi
+	elif [[ "$1" == dxp-* ]]; then
+		PATCH_FOLDER=dxp
+		PATCH_FILE=liferay-fix-pack-$1-7110.zip
 	fi
 }
 
