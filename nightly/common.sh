@@ -323,28 +323,37 @@ getpatch() {
 		return 0
 	fi
 
-	if [ -f ${LIFERAY_HOME}/patches/${PATCH_FILE} ] || [ -f ${LIFERAY_HOME}/patching-tool/patches/${PATCH_FILE} ]; then
-		echo "Using existing patch file ${PATCH_FILE}"
+	local PATCH_LOCATION="patches/${PATCH_FILE}"
+
+	if [ -f ${LIFERAY_HOME}/patches/${PATCH_FILE} ]; then
+		PATCH_LOCATION="${LIFERAY_HOME}/patches/${PATCH_FILE}"
+		echo "Using existing patch file ${PATCH_LOCATION}"
+	elif [ -f ${LIFERAY_HOME}/patching-tool/patches/${PATCH_FILE} ]; then
+		PATCH_LOCATION="${LIFERAY_HOME}/patching-tool/patches/${PATCH_FILE}"
+		echo "Using existing patch file ${PATCH_LOCATION}"
+	elif [ -f /build/patches/${PATCH_FILE} ]; then
+		PATCH_LOCATION="/build/patches/${PATCH_FILE}"
+		echo "Using existing patch file ${PATCH_LOCATION}"
 	else
 		local RELEASE_ID_SHORT=$(echo "$RELEASE_ID" | cut -d'.' -f 1,2,3)
 		local REQUEST_URL="$LIFERAY_FILES_MIRROR/private/ee/fix-packs/${RELEASE_ID_SHORT}/${PATCH_FOLDER}/${PATCH_FILE}"
 
 		echo "Attempting to download ${REQUEST_URL}"
-		curl -o patches/${PATCH_FILE} "${REQUEST_URL}"
+		curl -o ${PATCH_LOCATION} "${REQUEST_URL}"
 	fi
 
 	local NEEDED_PATCH_ID=
 
 	if [[ "${PATCH_FILE}" == liferay-hotfix-*-7010.zip ]]; then
 		PATCH_ID=
-		NEEDED_PATCH_ID=$(unzip -c patches/${PATCH_FILE} fixpack_documentation.xml | grep requirements | grep -o 'de=[0-9]*' | cut -d'=' -f 2)
+		NEEDED_PATCH_ID=$(unzip -c ${PATCH_LOCATION} fixpack_documentation.xml | grep requirements | grep -o 'de=[0-9]*' | cut -d'=' -f 2)
 
 		if [ "" != "${NEEDED_PATCH_ID}" ]; then
 			PATCH_ID=de-${NEEDED_PATCH_ID}
 		fi
 	elif [[ "${PATCH_FILE}" == liferay-hotfix-*-7110.zip ]]; then
 		PATCH_ID=
-		NEEDED_PATCH_ID=$(unzip -c patches/${PATCH_FILE} fixpack_documentation.xml | grep requirements | grep -o 'dxp=[0-9]*' | cut -d'=' -f 2)
+		NEEDED_PATCH_ID=$(unzip -c ${PATCH_LOCATION} fixpack_documentation.xml | grep requirements | grep -o 'dxp=[0-9]*' | cut -d'=' -f 2)
 
 		if [ "" != "${NEEDED_PATCH_ID}" ]; then
 			PATCH_ID=dxp-${NEEDED_PATCH_ID}
