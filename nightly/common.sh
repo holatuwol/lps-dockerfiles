@@ -33,6 +33,7 @@ checkservicepack() {
 
 	declare -A SERVICE_PACKS
 
+	SERVICE_PACKS[portal-0]=6.2.10
 	SERVICE_PACKS[portal-45]=6.2.10.12
 	SERVICE_PACKS[portal-63]=6.2.10.13
 	SERVICE_PACKS[portal-69]=6.2.10.14
@@ -44,6 +45,7 @@ checkservicepack() {
 	SERVICE_PACKS[portal-148]=6.2.10.20
 	SERVICE_PACKS[portal-154]=6.2.10.21
 
+	SERVICE_PACKS[de-0]=7.0.10
 	SERVICE_PACKS[de-7]=7.0.10.1
 	SERVICE_PACKS[de-12]=7.0.10.2
 	SERVICE_PACKS[de-14]=7.0.10.3
@@ -53,6 +55,8 @@ checkservicepack() {
 	SERVICE_PACKS[de-40]=7.0.10.7
 	SERVICE_PACKS[de-50]=7.0.10.8
 	SERVICE_PACKS[de-60]=7.0.10.9
+
+	SERVICE_PACKS[dxp-0]=7.1.10
 
 	closestservicepack ${PATCH_ID}
 }
@@ -66,7 +70,7 @@ closestservicepack() {
 	fi
 
 	if [[ "${1}" == portal-* ]]; then
-		for id in $(seq $(echo "${1}" | cut -d'-' -f 2) | tac); do
+		for id in $(seq 0 $(echo "${1}" | cut -d'-' -f 2) | tac); do
 			RELEASE_ID=${SERVICE_PACKS[portal-${id}]}
 
 			if [ "" != "${RELEASE_ID}" ]; then
@@ -77,7 +81,7 @@ closestservicepack() {
 	fi
 
 	if [[ "${1}" == de-* ]]; then
-		for id in $(seq $(echo "${1}" | cut -d'-' -f 2) | tac); do
+		for id in $(seq 0 $(echo "${1}" | cut -d'-' -f 2) | tac); do
 			RELEASE_ID=${SERVICE_PACKS[de-${id}]}
 
 			if [ "" != "${RELEASE_ID}" ]; then
@@ -88,7 +92,7 @@ closestservicepack() {
 	fi
 
 	if [[ "${1}" == dxp-* ]]; then
-		for id in $(seq $(echo "${1}" | cut -d'-' -f 2) | tac); do
+		for id in $(seq 0 $(echo "${1}" | cut -d'-' -f 2) | tac); do
 			RELEASE_ID=${SERVICE_PACKS[dxp-${id}]}
 
 			if [ "" != "${RELEASE_ID}" ]; then
@@ -476,7 +480,7 @@ setpatchfile() {
 			PATCH_FILE=$1.zip
 		fi
 	elif [[ "$1" == liferay-fix-pack-dxp-* ]]; then
-		PATCH_FOLDER=de
+		PATCH_FOLDER=dxp
 
 		if [[ "$1" == *.zip ]]; then
 			PATCH_FILE=$1
