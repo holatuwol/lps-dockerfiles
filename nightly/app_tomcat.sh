@@ -322,8 +322,8 @@ setup_ssl() {
 }
 
 startserver() {
-	sed -i.bak "s/-Xms[^ ]*/-Xms${JVM_HEAP_SIZE}/g" ${LIFERAY_HOME}/tomcat/bin/setenv.sh
-	sed -i.bak "s/-Xmx[^ ]*/-Xmx${JVM_HEAP_SIZE}/g" ${LIFERAY_HOME}/tomcat/bin/setenv.sh
+	sed -i.bak 's/-Xms[^ \"]*/-Xms'${JVM_HEAP_SIZE}'/g' ${LIFERAY_HOME}/tomcat/bin/setenv.sh
+	sed -i.bak 's/-Xmx[^ \"]*/-Xmx'${JVM_HEAP_SIZE}'/g' ${LIFERAY_HOME}/tomcat/bin/setenv.sh
 
 	JVM_HEAP_SIZE="${JVM_HEAP_SIZE}" JPDA_ADDRESS='0.0.0.0:8000' ${LIFERAY_HOME}/tomcat/bin/catalina.sh jpda run
 }
