@@ -152,6 +152,10 @@ copyextras() {
 	fi
 
 	if [ "false" == "${UP_TO_DATE}" ]; then
+		if [ ! -d ${LIFERAY_HOME}/patches ]; then
+			mv ${LIFERAY_HOME}/patching-tool/patches/ ${LIFERAY_HOME}/
+		fi
+
 		cd "${LIFERAY_HOME}"
 		rm -rf patching-tool
 		getpatchingtool
@@ -373,7 +377,7 @@ getpatchingtool() {
 	echo "Checking for latest patching tool at ${REQUEST_URL}"
 	local PATCHING_TOOL_VERSION=
 
-	if [[ "$RELEASE_ID" == 6.2.10* ]]; then
+	if [[ "$RELEASE_ID" == 6.1.30* ]] || [[ "$RELEASE_ID" == 6.2.10* ]]; then
 		PATCHING_TOOL_VERSION=patching-tool-$(curl $REQUEST_URL/LATEST.txt)-internal.zip
 	else
 		PATCHING_TOOL_VERSION=patching-tool-$(curl $REQUEST_URL/LATEST-2.0.txt)-internal.zip
