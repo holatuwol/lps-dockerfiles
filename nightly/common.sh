@@ -152,9 +152,8 @@ copyextras() {
 	fi
 
 	if [ "false" == "${UP_TO_DATE}" ]; then
-		if [ ! -d ${LIFERAY_HOME}/patches ]; then
-			mv ${LIFERAY_HOME}/patching-tool/patches/ ${LIFERAY_HOME}/
-		fi
+		mkdir -p ${LIFERAY_HOME}/patches
+		cp ${LIFERAY_HOME}/patching-tool/patches/* ${LIFERAY_HOME}/patches/
 
 		cd "${LIFERAY_HOME}"
 		rm -rf patching-tool
