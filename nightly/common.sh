@@ -555,11 +555,14 @@ tcp_cluster() {
 		return 0
 	fi
 
-	if [ ! -f ${LIFERAY_HOME}/tcp.xml ]; then
-		pushd ${LIFERAY_HOME} > /dev/null
-		tcp_extractxml
-		popd > /dev/null
+	if [ -f /build/tcp.xml ]; then
+		cp /build/tcp.xml ${LIFERAY_HOME}/
+		return 0
 	fi
+
+	pushd ${LIFERAY_HOME} > /dev/null
+	tcp_extractxml
+	popd > /dev/null
 
 	if [ ! -f ${LIFERAY_HOME}/tcp.xml ]; then
 		echo 'Unable to extract tcp.xml'
@@ -577,6 +580,8 @@ tcp_cluster() {
 }
 
 tcp_extractxml() {
+	rm -f tcp.xml
+
 	if [ "" == "$(grep -F cluster.link.enabled= ${HOME}/portal-setup-wizard.properties)" ]; then
 		echo '' >> ${HOME}/portal-setup-wizard.properties
 		echo 'cluster.link.enabled=true' >> ${HOME}/portal-setup-wizard.properties
