@@ -119,6 +119,12 @@ closestservicepack() {
 		echo "Failed to guess the service pack for ${1}, assuming ${RELEASE_ID}"
 		return 0
 	fi
+
+	if [[ "${1}" == *-6130 ]]; then
+		RELEASE_ID=6.1.30
+		echo "Failed to guess the service pack for ${1}, assuming ${RELEASE_ID}"
+		return 0
+	fi
 }
 
 copyextras() {
@@ -211,7 +217,7 @@ downloadbranch() {
 
 	if [ "" != "$PATCH_ID" ] || [ "" != "$RELEASE_ID" ] || [ -d "${LIFERAY_HOME}/patches" ]; then
 		downloadreleasebuild
-		return 0
+		return $?
 	fi
 
 	echo "Trying build server"
@@ -438,7 +444,13 @@ parsearg() {
 		return 0
 	fi
 
-	BASE_TAG=$(curl -s --connect-timeout 2 $TAG_ARCHIVE_MIRROR/tags-ce.txt | grep -F "$1")
+	BASE_TAG=$(curl -s --connect-timeout 2 $TAG_ARCHIVE_MIRROR/tags.txt | grep "^$1$")
+
+	if [ "" != "${BASE_TAG}" ] && [[ 1 == $(echo -n "${BASE_TAG}" | grep -c '^') ]]; then
+		return 0
+	fi
+
+	BASE_TAG=$(curl -s --connect-timeout 2 $TAG_ARCHIVE_MIRROR/tags-ce.txt | grep "^$1$")
 
 	if [ "" != "${BASE_TAG}" ] && [[ 1 == $(echo -n "${BASE_TAG}" | grep -c '^') ]]; then
 		return 0
