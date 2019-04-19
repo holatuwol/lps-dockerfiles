@@ -154,10 +154,12 @@ downloadreleasebuild() {
 	local REQUEST_URL=
 
 	if [ "" == "$RELEASE_ID" ]; then
-		if [ -d $LIFERAY_HOME/patches ] || [ "" != "$PATCH_ID" ]; then
-			RELEASE_ID=7.0.10
+		if [ "" != "$PATCH_ID" ]; then
+			RELEASE_ID=$(echo "${PATCH_ID}" | grep -o '[0-9]*$' | sed 's/\(.\)\(.\)\(..\)/\1.\2.\3/g')
+		elif [ -d $LIFERAY_HOME/patches ]; then
+			RELEASE_ID=$(find $LIFERAY_HOME/patches -name 'liferay-hotfix-*' | grep -o '[0-9]*.zip' | sed 's/\.zip//g' | sed 's/\(.\)\(.\)\(..\)/\1.\2.\3/g')
 		else
-			RELEASE_ID=7.0.0-ga1
+			return 1
 		fi
 	fi
 
