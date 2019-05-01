@@ -55,8 +55,10 @@ checkservicepack() {
 	SERVICE_PACKS[de-40]=7.0.10.7
 	SERVICE_PACKS[de-50]=7.0.10.8
 	SERVICE_PACKS[de-60]=7.0.10.9
+	SERVICE_PACKS[de-70]=7.0.10.10
 
 	SERVICE_PACKS[dxp-0]=7.1.10
+	SERVICE_PACKS[dxp-5]=7.1.10.1
 
 	closestservicepack ${PATCH_ID}
 }
