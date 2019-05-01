@@ -6,6 +6,8 @@ if [ "" == "${APP_SERVER}" ]; then
 	APP_SERVER=tomcat
 fi
 
+set -o xtrace
+
 . ${HOME}/app_${APP_SERVER}.sh
 
 cd ${LIFERAY_HOME}
