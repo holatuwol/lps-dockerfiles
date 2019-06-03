@@ -1,4 +1,4 @@
-FROM java:openjdk-6-jdk
+FROM azul/zulu-openjdk:6
 
 EXPOSE 7800 7801 8000 8009 8080 11311
 
