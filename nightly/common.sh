@@ -405,6 +405,16 @@ getpatchingtool() {
 	unzip $PATCHING_TOOL_VERSION
 }
 
+javahome() {
+	if [ "" != "${JAVA_HOME}" ]; then
+		return 0
+	fi
+
+	if [ -d /usr/lib/jvm/ ]; then
+		JAVA_HOME=/usr/lib/jvm/$(ls -1 /usr/lib/jvm/ | tail -1)
+	fi
+}
+
 parsearg() {
 	if [ "" == "$1" ]; then
 		return 0
@@ -739,3 +749,5 @@ initialize_sql="CREATE TABLE JGROUPSPING (own_addr varchar(200) NOT NULL, cluste
 	cp -f tcp.xml.jdbcping tcp.xml
 	rm tcp.xml.jdbcping
 }
+
+javahome
