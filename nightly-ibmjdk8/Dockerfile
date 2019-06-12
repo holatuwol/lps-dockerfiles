@@ -1,4 +1,4 @@
-FROM ibmcom/ibmjava:8-sdk
+FROM ibmjava:8-sdk
 
 EXPOSE 7800 7801 8000 8009 8080 11311
 
