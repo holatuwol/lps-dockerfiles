@@ -119,7 +119,7 @@ if [ -f /opt/jboss/tcp.xml ] && [ "" != "$(grep -F TCPPING /opt/jboss/tcp.xml)" 
   JAVA_OPTS="${JAVA_OPTS} -Djgroups.tcpping.initial_hosts='${INITIAL_HOSTS}'"
 fi
 
-JAVA_OPTS="${JAVA_OPTS} -Dfile.encoding=UTF-8 -Djava.net.preferIPv4Stack=true -Dwildfly.home.dir=/opt/jboss/wildfly -Duser.timezone=GMT -Xms${JVM_HEAP_SIZE} -Xmx${JVM_HEAP_SIZE} -XX:MaxMetaspaceSize=1g -XX:MetaspaceSize=1g"
+JAVA_OPTS="${JAVA_OPTS} -Dfile.encoding=UTF-8 -Djava.net.preferIPv4Stack=true -Dwildfly.home.dir=/opt/jboss/wildfly -Duser.timezone=GMT"
 
 # Set debug settings if not already set
 if [ "$DEBUG_MODE" = "true" ]; then
