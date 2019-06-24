@@ -25,7 +25,13 @@ tcp_cluster() {
 	fi
 
 	pushd ${LIFERAY_HOME} > /dev/null
-	tcp_jdbcping
+
+	if [ "${APP_SERVER}" == "tomcat" ]; then
+		tcp_jdbcping
+	else
+		tcp_tcpping
+	fi
+
 	popd > /dev/null
 }
 
@@ -172,6 +178,20 @@ initialize_sql="CREATE TABLE JGROUPSPING (own_addr varchar(200) NOT NULL, cluste
 
 	cp -f tcp.xml.jdbcping tcp.xml
 	rm tcp.xml.jdbcping
+}
+
+tcp_tcpping() {
+	BASE_IP=$(hostname -I | cut -d'.' -f 1,2,3)
+	INITIAL_HOSTS=$(seq 9 | awk '{ print "'${BASE_IP}'." $1 "[7800],'${BASE_IP}'." $1 "[7801]" }' | tr '\n' ',' | sed 's/,$//g')
+
+	# Generate a new tcp.xml that enumerates 10 hosts
+
+	sed -n '1,/<TCPPING/p' tcp.xml | sed '$d' > tcp.xml.tcpping
+	echo '<TCPPING async_discovery="true" initial_hosts="${jgroups.tcpping.initial_hosts:'${INITIAL_HOSTS}'}" port_range="2"/>' >> tcp.xml.tcpping
+	sed -n '/<MERGE/,$p' tcp.xml >> tcp.xml.tcpping
+
+	cp -f tcp.xml.tcpping tcp.xml
+	rm tcp.xml.tcpping
 }
 
 tcp_cluster
