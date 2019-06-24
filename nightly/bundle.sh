@@ -44,4 +44,4 @@ if [ "" == "${JVM_META_SIZE}" ]; then
 	JVM_META_SIZE='512m'
 fi
 
-tcp_cluster && startserver
+. ${HOME}/cluster.sh && startserver
