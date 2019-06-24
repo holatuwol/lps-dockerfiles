@@ -1,5 +1,50 @@
 #!/bin/bash
 
+install_jar() {
+	local EXTRA_JAR="${1}/${2}.jar"
+
+	if [ -f ${EXTRA_JAR} ]; then
+		return 0
+	fi
+
+	while read -r lpkg; do
+		if [ -f ${lpkg} ] && [ "" != "$(unzip -l "${lpkg}" | grep -F $2)" ]; then
+			return 0
+		fi
+	done <<< "$(find ${LIFERAY_HOME}/osgi/marketplace -name '*.lpkg')"
+
+	if [ ! -e .git ] || [ "" == "${BASE_BRANCH}" ]; then
+		return 0
+	fi
+
+	local PRIVATE_TAG=${BASE_TAG}
+	local PRIVATE_BRANCH=${BASE_BRANCH}
+
+	if [ "" == "${PRIVATE_TAG}" ]; then
+		PRIVATE_TAG=${BASE_BRANCH}
+	fi
+
+	if [[ ${BASE_BRANCH} != ee-* ]] && [[ ${BASE_BRANCH} != *-private ]]; then
+		PRIVATE_BRANCH=${PRIVATE_BRANCH}-private
+		PRIVATE_TAG=${PRIVATE_TAG}-private
+	fi
+
+	local ARTIFACT_PROPERTIES=$(git ls-tree -r --name-only ${PRIVATE_TAG} modules/.releng | grep -F "/$3/" | grep -F artifact.properties)
+
+	if [ "" == "${ARTIFACT_PROPERTIES}" ]; then
+		return 0
+	fi
+
+	local PRIVATE_USERNAME=$(git show ${PRIVATE_BRANCH}:working.dir.properties | grep -F "build.repository.private.username[${PRIVATE_BRANCH}]=" | cut -d'=' -f 2)
+	local PRIVATE_PASSWORD=$(git show ${PRIVATE_BRANCH}:working.dir.properties | grep -F "build.repository.private.password[${PRIVATE_BRANCH}]=" | cut -d'=' -f 2)
+
+	local ARTIFACT_URL=$(git show ${PRIVATE_TAG}:${ARTIFACT_PROPERTIES} | grep -F artifact.url | cut -d'=' -f 2)
+
+	echo "Downloading ${ARTIFACT_URL}"
+
+	curl -u ${PRIVATE_USERNAME}:${PRIVATE_PASSWORD} -o ${EXTRA_JAR} ${ARTIFACT_URL}
+}
+
 tcp_cluster() {
 	if [ "true" != "${IS_CLUSTER}" ]; then
 		return 0
@@ -10,56 +55,48 @@ tcp_cluster() {
 		return 0
 	fi
 
-	pushd ${LIFERAY_HOME} > /dev/null
 	tcp_extractxml
-	popd > /dev/null
 
 	if [ ! -f ${LIFERAY_HOME}/tcp.xml ]; then
 		echo 'Unable to extract tcp.xml'
 		return 1
 	fi
 
-	if [ ! -f portal-ext.properties ] || [ "" == "$(grep -F jdbc.default portal-ext.properties | grep -vF '#')" ]; then
+	if [ -f ${LIFERAY_HOME}/portal-setup-wizard.properties ] && [ "" == "$(grep -F cluster.link.enabled= ${LIFERAY_HOME}/portal-setup-wizard.properties)" ]; then
+		echo '' >> ${LIFERAY_HOME}/portal-setup-wizard.properties
+		echo 'cluster.link.enabled=true' >> ${LIFERAY_HOME}/portal-setup-wizard.properties
+		echo "cluster.link.channel.properties.control=${LIFERAY_HOME}/tcp.xml" >> ${LIFERAY_HOME}/portal-setup-wizard.properties
+		echo "cluster.link.channel.properties.transport.0=${LIFERAY_HOME}/tcp.xml" >> ${LIFERAY_HOME}/portal-setup-wizard.properties
+	fi
+
+	if [ ! -f ${LIFERAY_HOME}/portal-ext.properties ] || [ "" == "$(grep -F jdbc.default ${LIFERAY_HOME}/portal-ext.properties | grep -vF '#')" ]; then
 		echo 'No database properties set, cluster will be limited to one node'
 		return 0
 	fi
-
-	pushd ${LIFERAY_HOME} > /dev/null
 
 	if [ "${APP_SERVER}" == "tomcat" ]; then
 		tcp_jdbcping
 	else
 		tcp_tcpping
 	fi
-
-	popd > /dev/null
 }
 
 tcp_extractxml() {
-	rm -f tcp.xml
+	rm -f ${LIFERAY_HOME}/tcp.xml
 
-	if [ "" == "$(grep -F cluster.link.enabled= ${HOME}/portal-setup-wizard.properties)" ]; then
-		echo '' >> ${HOME}/portal-setup-wizard.properties
-		echo 'cluster.link.enabled=true' >> ${HOME}/portal-setup-wizard.properties
-		echo "cluster.link.channel.properties.control=${LIFERAY_HOME}/tcp.xml" >> ${HOME}/portal-setup-wizard.properties
-		echo "cluster.link.channel.properties.transport.0=${LIFERAY_HOME}/tcp.xml" >> ${HOME}/portal-setup-wizard.properties
-	fi
-
-	if [ -f ${LIFERAY_HOME}/osgi/portal/com.liferay.portal.cluster.multiple.jar ]; then
-		echo "Extracting tcp.xml from com.liferay.portal.cluster.multiple.jar"
-		unzip -qq -j ${LIFERAY_HOME}/osgi/portal/com.liferay.portal.cluster.multiple.jar 'lib/jgroups*'
-		unzip -qq -j jgroups*.jar tcp.xml
-		rm jgroups*.jar
+	if [ -f ${LIFERAY_HOME}/tomcat/webapps/ROOT/WEB-INF/lib/jgroups.jar ]; then
+		echo "Extracting tcp.xml from WEB-INF/lib/jgroups.jar"
+		unzip -qq -j ${LIFERAY_HOME}/tomcat/webapps/ROOT/WEB-INF/lib/jgroups.jar tcp.xml
+		mv tcp.xml ${LIFERAY_HOME}/
 
 		return 0
 	fi
 
-	if [ ! -d ${LIFERAY_HOME}/osgi/marketplace ]; then
-		return 1
-	fi
+	install_jar ${LIFERAY_HOME}/osgi/portal com.liferay.portal.cluster.multiple portal-cluster-multiple
+	install_jar ${LIFERAY_HOME}/osgi/portal com.liferay.portal.scheduler.multiple portal-scheduler-multiple
 
 	while read -r lpkg; do
-		if [ "" == "$(unzip -l "${lpkg}" | grep -F 'com.liferay.portal.cluster.multiple')" ]; then
+		if [ ! -f ${lpkg} ] || [ "" == "$(unzip -l "${lpkg}" | grep -F 'com.liferay.portal.cluster.multiple')" ]; then
 			continue
 		fi
 
@@ -69,15 +106,18 @@ tcp_extractxml() {
 		rm com.liferay.portal.cluster.multiple*.jar
 		unzip -qq -j jgroups*.jar tcp.xml
 		rm jgroups*.jar
+		mv tcp.xml ${LIFERAY_HOME}/
 
 		return 0
 	done <<< "$(find ${LIFERAY_HOME}/osgi/marketplace -name '*.lpkg')"
 
-	JGROUPS_JAR=$(find ${LIFERAY_HOME} -name 'jgroups.jar' | grep -F '/WEB-INF/lib/jgroups.jar')
+	if [ -f ${LIFERAY_HOME}/osgi/portal/com.liferay.portal.cluster.multiple.jar ]; then
+		echo "Extracting tcp.xml from com.liferay.portal.cluster.multiple.jar"
+		unzip -qq -j ${LIFERAY_HOME}/osgi/portal/com.liferay.portal.cluster.multiple.jar 'lib/jgroups*'
+		unzip -qq -j jgroups*.jar tcp.xml
+		rm jgroups*.jar
+		mv tcp.xml ${LIFERAY_HOME}/
 
-	if [ "" != "${JGROUPS_JAR}" ]; then
-		echo "Extracting tcp.xml from WEB-INF/lib/jgroups.jar"
-		unzip -qq -j tomcat/webapps/ROOT/WEB-INF/lib/jgroups.jar tcp.xml
 		return 0
 	fi
 
@@ -87,18 +127,18 @@ tcp_extractxml() {
 tcp_jdbcping() {
 	echo "Using JDBC_PING for clustering"
 
-	local JNDI_NAME=$(grep -F jdbc.default.jndi.name= portal-ext.properties | grep -vF '#' | cut -d'=' -f 2-)
-	local DRIVER_CLASS_NAME=$(grep -F jdbc.default.driverClassName= portal-ext.properties | grep -vF '#' | cut -d'=' -f 2-)
-	local DRIVER_URL=$(grep -F jdbc.default.url= portal-ext.properties | grep -vF '#' | cut -d'=' -f 2-)
-	local USERNAME=$(grep -F jdbc.default.username= portal-ext.properties | grep -vF '#' | cut -d'=' -f 2-)
-	local PASSWORD=$(grep -F jdbc.default.password= portal-ext.properties | grep -vF '#' | cut -d'=' -f 2-)
+	local JNDI_NAME=$(grep -F jdbc.default.jndi.name= ${LIFERAY_HOME}/portal-ext.properties | grep -vF '#' | cut -d'=' -f 2-)
+	local DRIVER_CLASS_NAME=$(grep -F jdbc.default.driverClassName= ${LIFERAY_HOME}/portal-ext.properties | grep -vF '#' | cut -d'=' -f 2-)
+	local DRIVER_URL=$(grep -F jdbc.default.url= ${LIFERAY_HOME}/portal-ext.properties | grep -vF '#' | cut -d'=' -f 2-)
+	local USERNAME=$(grep -F jdbc.default.username= ${LIFERAY_HOME}/portal-ext.properties | grep -vF '#' | cut -d'=' -f 2-)
+	local PASSWORD=$(grep -F jdbc.default.password= ${LIFERAY_HOME}/portal-ext.properties | grep -vF '#' | cut -d'=' -f 2-)
 
 	# If using Tomcat, force a switch to JNDI
 
 	if [ "" != "${CATALINA_HOME}" ]; then
 		if [ "" == "${JNDI_NAME}" ]; then
 			JNDI_NAME='jdbc/LiferayPool'
-			echo -e '\njdbc.default.jndi.name=jdbc/LiferayPool' >> portal-ext.properties
+			echo -e '\njdbc.default.jndi.name=jdbc/LiferayPool' >> ${LIFERAY_HOME}/portal-ext.properties
 		fi
 
 		local ROOT_XML="${CATALINA_HOME}/conf/Catalina/localhost/ROOT.xml"
@@ -172,12 +212,12 @@ initialize_sql="CREATE TABLE JGROUPSPING (own_addr varchar(200) NOT NULL, cluste
 
 	# Generate a new tcp.xml with the proper JDBC_PING configuration
 
-	sed -n '1,/<TCPPING/p' tcp.xml | sed '$d' > tcp.xml.jdbcping
-	echo "<JDBC_PING ${CONNECT_OPTIONS} ${EXTRA_OPTIONS} />" >> tcp.xml.jdbcping
-	sed -n '/<MERGE/,$p' tcp.xml >> tcp.xml.jdbcping
+	sed -n '1,/<TCPPING/p' ${LIFERAY_HOME}/tcp.xml | sed '$d' > ${LIFERAY_HOME}/tcp.xml.jdbcping
+	echo "<JDBC_PING ${CONNECT_OPTIONS} ${EXTRA_OPTIONS} />" >> ${LIFERAY_HOME}/tcp.xml.jdbcping
+	sed -n '/<MERGE/,$p' ${LIFERAY_HOME}/tcp.xml >> ${LIFERAY_HOME}/tcp.xml.jdbcping
 
-	cp -f tcp.xml.jdbcping tcp.xml
-	rm tcp.xml.jdbcping
+	cp -f ${LIFERAY_HOME}/tcp.xml.jdbcping ${LIFERAY_HOME}/tcp.xml
+	rm ${LIFERAY_HOME}/tcp.xml.jdbcping
 }
 
 tcp_tcpping() {
@@ -186,12 +226,12 @@ tcp_tcpping() {
 
 	# Generate a new tcp.xml that enumerates 10 hosts
 
-	sed -n '1,/<TCPPING/p' tcp.xml | sed '$d' > tcp.xml.tcpping
-	echo '<TCPPING async_discovery="true" initial_hosts="${jgroups.tcpping.initial_hosts:'${INITIAL_HOSTS}'}" port_range="2"/>' >> tcp.xml.tcpping
-	sed -n '/<MERGE/,$p' tcp.xml >> tcp.xml.tcpping
+	sed -n '1,/<TCPPING/p' ${LIFERAY_HOME}/tcp.xml | sed '$d' > ${LIFERAY_HOME}/tcp.xml.tcpping
+	echo '<TCPPING async_discovery="true" initial_hosts="${jgroups.tcpping.initial_hosts:'${INITIAL_HOSTS}'}" port_range="2"/>' >> ${LIFERAY_HOME}/tcp.xml.tcpping
+	sed -n '/<MERGE/,$p' ${LIFERAY_HOME}/tcp.xml >> ${LIFERAY_HOME}/tcp.xml.tcpping
 
-	cp -f tcp.xml.tcpping tcp.xml
-	rm tcp.xml.tcpping
+	cp -f ${LIFERAY_HOME}/tcp.xml.tcpping ${LIFERAY_HOME}/tcp.xml
+	rm ${LIFERAY_HOME}/tcp.xml.tcpping
 }
 
 tcp_cluster
