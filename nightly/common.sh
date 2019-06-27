@@ -50,7 +50,6 @@ envreload() {
 	# Download and unzip the build
 
 	parsearg $1
-	checkservicepack
 	downloadbuild
 
 	echo 'Saving environment variables'

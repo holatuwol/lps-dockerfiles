@@ -216,6 +216,8 @@ copyextras() {
 }
 
 downloadrelease() {
+	checkservicepack
+
 	local REQUEST_URL=
 
 	if [ "" == "$RELEASE_ID" ]; then
