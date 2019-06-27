@@ -1,69 +1,5 @@
 #!/bin/bash
 
-install_jar() {
-	local EXTRA_JAR="${1}/${2}.jar"
-
-	if [ -f ${EXTRA_JAR} ]; then
-		return 0
-	fi
-
-	while read -r lpkg; do
-		if [ "" != "${lpkg}" ] && [ -f ${lpkg} ] && [ "" != "$(unzip -l "${lpkg}" | grep -F $2)" ]; then
-			return 0
-		fi
-	done <<< "$(find ${LIFERAY_HOME}/osgi/marketplace -name '*.lpkg')"
-
-	if [ "" == "${GIT_ROOT}" ] || [ "" == "${BASE_BRANCH}" ]; then
-		return 0
-	fi
-
-	local PRIVATE_TAG=${BASE_TAG}
-	local PRIVATE_BRANCH=${BASE_BRANCH}
-
-	if [ "master" == "${BASE_BRANCH}" ]; then
-		BASE_TAG=7.2.x
-		BASE_BRANCH=7.2.x
-		PRIVATE_TAG=7.2.x-private
-		PRIVATE_BRANCH=7.2.x-private
-	else
-		if [ "" == "${PRIVATE_TAG}" ]; then
-			PRIVATE_TAG=${BASE_BRANCH}
-		fi
-
-		if [[ ${BASE_BRANCH} != ee-* ]] && [[ ${BASE_BRANCH} != *-private ]]; then
-			PRIVATE_BRANCH=${PRIVATE_BRANCH}-private
-			PRIVATE_TAG=${PRIVATE_TAG}-private
-		fi
-	fi
-
-	local ARTIFACT_PROPERTIES=$(git ls-tree -r --name-only ${BASE_TAG} modules/.releng | grep -F "/$3/" | grep -F artifact.properties)
-
-	if [ "" != "${ARTIFACT_PROPERTIES}" ]; then
-		local ARTIFACT_URL=$(git show ${BASE_TAG}:${ARTIFACT_PROPERTIES} | grep -F artifact.url | cut -d'=' -f 2)
-
-		echo "Downloading ${ARTIFACT_URL}"
-
-		curl -o ${EXTRA_JAR} ${ARTIFACT_URL}
-
-		return 0
-	fi
-
-	ARTIFACT_PROPERTIES=$(git ls-tree -r --name-only ${PRIVATE_TAG} modules/.releng | grep -F "/$3/" | grep -F artifact.properties)
-
-	if [ "" == "${ARTIFACT_PROPERTIES}" ]; then
-		return 1
-	fi
-
-	local PRIVATE_USERNAME=$(git show ${PRIVATE_BRANCH}:working.dir.properties | grep -F "build.repository.private.username[${PRIVATE_BRANCH}]=" | cut -d'=' -f 2)
-	local PRIVATE_PASSWORD=$(git show ${PRIVATE_BRANCH}:working.dir.properties | grep -F "build.repository.private.password[${PRIVATE_BRANCH}]=" | cut -d'=' -f 2)
-
-	local ARTIFACT_URL=$(git show ${PRIVATE_TAG}:${ARTIFACT_PROPERTIES} | grep -F artifact.url | cut -d'=' -f 2)
-
-	echo "Downloading ${ARTIFACT_URL}"
-
-	curl -u ${PRIVATE_USERNAME}:${PRIVATE_PASSWORD} -o ${EXTRA_JAR} ${ARTIFACT_URL}
-}
-
 tcp_cluster() {
 	if [ "true" != "${IS_CLUSTER}" ]; then
 		return 0
@@ -111,8 +47,8 @@ tcp_extractxml() {
 		return 0
 	fi
 
-	install_jar ${LIFERAY_HOME}/osgi/portal com.liferay.portal.cluster.multiple portal-cluster-multiple
-	install_jar ${LIFERAY_HOME}/osgi/portal com.liferay.portal.scheduler.multiple portal-scheduler-multiple
+	${HOME}/install_jar.sh ${LIFERAY_HOME}/osgi/portal com.liferay.portal.cluster.multiple portal-cluster-multiple
+	${HOME}/install_jar.sh ${LIFERAY_HOME}/osgi/portal com.liferay.portal.scheduler.multiple portal-scheduler-multiple
 
 	while read -r lpkg; do
 		if [ ! -f ${lpkg} ] || [ "" == "$(unzip -l "${lpkg}" | grep -F 'com.liferay.portal.cluster.multiple')" ]; then

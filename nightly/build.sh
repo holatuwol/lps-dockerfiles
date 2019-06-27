@@ -11,6 +11,7 @@ cp -f ../nightly/download_branch.sh .
 cp -f ../nightly/download_build.sh .
 cp -f ../nightly/download_release.sh .
 cp -f ../nightly/entrypoint.sh .
+cp -f ../nightly/install_jar.sh .
 cp -f ../nightly/setenv.sh .
 cp -f ../nightly/upgrade.sh .
 cp -f ../nightly/sslconfig.cnf.base .

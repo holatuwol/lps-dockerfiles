@@ -7,6 +7,7 @@ download_branch.sh
 download_build.sh
 download_release.sh
 entrypoint.sh
+install_jar.sh
 setenv.sh
 upgrade.sh
 sslconfig.cnf.base
