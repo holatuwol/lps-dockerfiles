@@ -44,26 +44,18 @@ create_keystore() {
 	fi
 }
 
-install() {
-	return 0
-}
-
-makesymlink() {
-	if [ -h ${LIFERAY_HOME}/tomcat ]; then
-		CATALINA_HOME=${LIFERAY_HOME}/tomcat
-		return 0
+prepare_server() {
+	if [ ! -f ${CATALINA_HOME}/bin/setenv.sh ]; then
+		cp -f ${HOME}/setenv.sh ${CATALINA_HOME}/bin/
+	elif [ "" == "$(grep -F "${HOME}/setenv.sh" ${CATALINA_HOME}/bin/setenv.sh)" ]; then
+		echo -e "\n\n. ${HOME}/setenv.sh" >> ${CATALINA_HOME}/bin/setenv.sh
 	fi
 
-	CATALINA_HOME=$(find ${LIFERAY_HOME} -mindepth 1 -maxdepth 1 -name 'tomcat*')
-	echo "Adding symbolic link to $CATALINA_HOME"
-	ln -s ${CATALINA_HOME} ${LIFERAY_HOME}/tomcat
-	CATALINA_HOME=${LIFERAY_HOME}/tomcat
-}
-
-setup_ssl() {
 	if [ -d /opt/ibm/java ]; then
 		return 0
 	fi
+
+	create_keystore
 
 	if [ -f ${CATALINA_HOME}/cacerts ]; then
 		return 0
@@ -98,7 +90,7 @@ setup_ssl() {
 	cp -f ${CATALINA_HOME}/conf/server.xml.https ${CATALINA_HOME}/conf/server.xml
 }
 
-startserver() {
+start_server() {
 	sed -i.bak 's/-Xms[^ \"]*/-Xms'${JVM_HEAP_SIZE}'/g' ${LIFERAY_HOME}/tomcat/bin/setenv.sh
 	sed -i.bak 's/-Xmx[^ \"]*/-Xmx'${JVM_HEAP_SIZE}'/g' ${LIFERAY_HOME}/tomcat/bin/setenv.sh
 

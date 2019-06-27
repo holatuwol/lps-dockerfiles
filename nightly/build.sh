@@ -8,6 +8,7 @@ cp -f ../nightly/bundle.sh .
 cp -f ../nightly/cluster.sh .
 cp -f ../nightly/common.sh .
 cp -f ../nightly/download_branch.sh .
+cp -f ../nightly/download_build.sh .
 cp -f ../nightly/download_release.sh .
 cp -f ../nightly/entrypoint.sh .
 cp -f ../nightly/setenv.sh .

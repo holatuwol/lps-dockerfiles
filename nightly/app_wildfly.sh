@@ -1,6 +1,6 @@
 #!/bin/bash
 
-addmodulexml() {
+add_module_xml() {
 	echo '<?xml version="1.0"?>
 
 <module xmlns="urn:jboss:module:1.0" name="com.liferay.portal">
@@ -23,11 +23,7 @@ addmodulexml() {
 </module>' >> ${WILDFLY_HOME}/modules/com/liferay/portal/main/module.xml
 }
 
-create_keystore() {
-	return 0
-}
-
-install() {
+prepare_server() {
 	cd ${LIFERAY_HOME}
 
 	local CATALINA_HOME=$(dirname $(find ${LIFERAY_HOME} -mindepth 2 -maxdepth 2 -type d -name 'webapps'))
@@ -45,22 +41,14 @@ install() {
 		mv ${file} ${WILDFLY_HOME}/modules/com/liferay/portal/main/
 	done
 
-	addmodulexml
+	add_module_xml
 
 	cp ${LIFERAY_HOME}/osgi/core/com.liferay.osgi.service.tracker.collections*.jar ${WILDFLY_HOME}/modules/com/liferay/portal/main/com.liferay.osgi.service.tracker.collections.jar
 
 	touch ${WILDFLY_HOME}/standalone/deployments/ROOT.war.dodeploy
 }
 
-makesymlink() {
-	return 0
-}
-
-setup_ssl() {
-	return 0
-}
-
-startserver() {
+start_server() {
 	sed -i.bak "s/-Xms[0-9MmGg]*/-Xms${JVM_HEAP_SIZE}/g" ${WILDFLY_HOME}/bin/standalone.conf
 	sed -i.bak "s/-Xmx[0-9MmGg]*/-Xmx${JVM_HEAP_SIZE}/g" ${WILDFLY_HOME}/bin/standalone.conf
 	sed -i.bak "s/-XX:MetaspaceSize=[0-9MmGg]*//g" ${WILDFLY_HOME}/bin/standalone.conf

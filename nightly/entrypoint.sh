@@ -2,23 +2,14 @@
 
 . ${HOME}/common.sh
 
-if [ "" == "${APP_SERVER}" ]; then
-	APP_SERVER=tomcat
-fi
-
 set -o xtrace
-
-. ${HOME}/app_${APP_SERVER}.sh
 
 cd ${LIFERAY_HOME}
 touch .liferay-home
 
-if [ -f ${LIFERAY_HOME}/setup.sh ]; then
-	cd ${LIFERAY_HOME}
-	chmod u+x setup.sh
-	./setup.sh
-	cd -
-fi
+envreload $1
+makesymlink
+copyextras
 
 if [ "true" == "${IS_UPGRADE}" ]; then
 	. ${HOME}/upgrade.sh $1

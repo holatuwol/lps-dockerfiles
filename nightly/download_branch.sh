@@ -1,17 +1,5 @@
 #!/bin/bash
 
-copyextras() {
-	if [ -d "/build/drivers" ]; then
-		local GLOBAL_LIB=$(dirname $(find ${LIFERAY_HOME} -name portlet.jar))
-
-		if [ -f /usr/bin/rsync ]; then
-			rsync -aq "/build/drivers/" "${GLOBAL_LIB}"
-		else
-			cp -f "/build/drivers/*" "${GLOBAL_LIB}"
-		fi
-	fi
-}
-
 downloadbranch() {
 	SHORT_NAME=$(echo $BASE_BRANCH | sed 's/ee-//g' | tr -d '.')
 	NEW_BASELINE=
@@ -90,7 +78,7 @@ downloadbranchmirror() {
 		REQUEST_URL="$LIFERAY_RELEASES_MIRROR/portal/snapshot-$BASE_BRANCH/latest/"
 	fi
 
-	local ARTIFACT_NAME=$(curl -s --connect-timeout 2 $FILES_CREDENTIALS $REQUEST_URL | grep -o '<a href="liferay-portal-tomcat-[^"]*\.\(7z\|zip\)">' | cut -d'"' -f 2)
+	local ARTIFACT_NAME=$(curl -s --connect-timeout 2 $FILES_CREDENTIALS $REQUEST_URL | grep -o '<a href="liferay-portal-tomcat-'${BASE_BRANCH}'\.\(7z\|zip\)">' | cut -d'"' -f 2 | sort | head -1)
 
 	REQUEST_URL="${REQUEST_URL}${ARTIFACT_NAME}"
 	BUILD_NAME=$(echo ${ARTIFACT_NAME} | sed "s/liferay-portal-tomcat-${BASE_BRANCH}/${SHORT_NAME}/g")

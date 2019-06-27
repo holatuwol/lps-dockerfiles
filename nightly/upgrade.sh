@@ -1,22 +1,5 @@
 #!/bin/bash
 
-envreload $1
-
-makesymlink
-copyextras
-
-if [ -d /build ]; then
-	rsync -arq --exclude=tomcat --exclude=logs /build/ ${LIFERAY_HOME}/
-
-	if [ -d /build/tomcat ] && [ "" == "$(find /build/tomcat -name catalina.sh)" ]; then
-		rsync -arq /build/tomcat/ ${LIFERAY_HOME}/tomcat/
-	fi
-fi
-
-if [ -d /opt/ibm/java ]; then
-	rm -f /opt/liferay/tomcat/webapps/ROOT/WEB-INF/classes/META-INF/MANIFEST.MF
-fi
-
 # Execute the upgrade
 
 echo "Starting upgrade..."
