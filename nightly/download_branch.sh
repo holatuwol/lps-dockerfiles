@@ -1,5 +1,17 @@
 #!/bin/bash
 
+copyextras() {
+	if [ -d "/build/drivers" ]; then
+		local GLOBAL_LIB=$(dirname $(find ${LIFERAY_HOME} -name portlet.jar))
+
+		if [ -f /usr/bin/rsync ]; then
+			rsync -aq "/build/drivers/" "${GLOBAL_LIB}"
+		else
+			cp -f "/build/drivers/*" "${GLOBAL_LIB}"
+		fi
+	fi
+}
+
 downloadbranch() {
 	SHORT_NAME=$(echo $BASE_BRANCH | sed 's/ee-//g' | tr -d '.')
 	NEW_BASELINE=
