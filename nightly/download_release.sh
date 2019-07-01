@@ -242,8 +242,7 @@ downloadrelease() {
 
 	echo "Identifying build candidate (release) via ${REQUEST_URL}"
 
-	BUILD_NAME=${RELEASE_ID}.zip
-	local BUILD_CANDIDATE=$(curl -s --connect-timeout 2 $REQUEST_URL | grep -o '<a href="[^"]*tomcat-[^"]*.zip">' | grep -vF 'jre' | cut -d'"' -f 2 | sort | tail -1)
+	local BUILD_CANDIDATE=$(curl -s --connect-timeout 2 $REQUEST_URL | grep -o '<a href="[^"]*tomcat-[^"]*\.\(7z\|zip\)">' | grep -vF 'jre' | cut -d'"' -f 2 | sort | tail -1)
 
 	if [ "" == "$BUILD_CANDIDATE" ]; then
 		echo "Unable to identify build candidate (maybe you forgot to connect to a VPN)"
@@ -251,6 +250,7 @@ downloadrelease() {
 	fi
 
 	echo $BUILD_CANDIDATE
+	BUILD_NAME=${RELEASE_ID}$(echo ${BUILD_CANDIDATE} | grep -o '\.\(7z\|zip\)$')
 
 	if [ -f /release/${BUILD_CANDIDATE} ]; then
 		echo "Using already downloaded ${BUILD_CANDIDATE}"
@@ -264,7 +264,7 @@ downloadrelease() {
 
 	REQUEST_URL="${REQUEST_URL}${BUILD_CANDIDATE}"
 
-	BUILD_TIMESTAMP=$(echo $BUILD_CANDIDATE | grep -o "[0-9]*.zip" | cut -d'.' -f 1)
+	BUILD_TIMESTAMP=$(echo $BUILD_CANDIDATE | grep -o "[0-9]*.\(7z\|zip\)" | cut -d'.' -f 1)
 
 	echo "Downloading $RELEASE_ID release (used for patching)"
 
