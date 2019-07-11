@@ -136,16 +136,6 @@ closestservicepack() {
 }
 
 copyextras() {
-	if [ -d "/build/drivers" ]; then
-		local GLOBAL_LIB=$(dirname $(find ${LIFERAY_HOME} -name portlet.jar))
-
-		if [ -f /usr/bin/rsync ]; then
-			rsync -aq "/build/drivers/" "${GLOBAL_LIB}"
-		else
-			cp -f "/build/drivers/*" "${GLOBAL_LIB}"
-		fi
-	fi
-
 	if [ ! -d /build/patches ] && [ ! -d "${LIFERAY_HOME}/patching-tool" ]; then
 		if [ "" == "$RELEASE_ID" ] || [[ 10 -lt $(echo "$RELEASE_ID" | cut -d'.' -f 3 | cut -d'-' -f 1) ]]; then
 			echo "Not an EE release, so patches will not be installed"

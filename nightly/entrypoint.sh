@@ -9,6 +9,7 @@ touch .liferay-home
 
 envreload $1
 makesymlink
+syncliferayhome
 copyextras
 
 if [ "true" == "${IS_UPGRADE}" ]; then

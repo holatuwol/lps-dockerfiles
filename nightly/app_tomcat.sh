@@ -6,6 +6,7 @@ create_keystore() {
 	fi
 
 	if [ -f /build/keystore ]; then
+		cp /build/keystore ${LIFERAY_HOME}/
 		return 0
 	fi
 

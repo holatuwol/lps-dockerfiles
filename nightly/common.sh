@@ -1,6 +1,14 @@
 #!/bin/bash
 
 copyextras() {
+	return 0
+}
+
+syncliferayhome() {
+	if [ -f /build/portal-ext.properties ]; then
+		cp /build/portal-ext.properties ${LIFERAY_HOME}/
+	fi
+
 	if [ -d "/build/drivers" ]; then
 		local GLOBAL_LIB=$(dirname $(find ${LIFERAY_HOME} -name portlet.jar))
 
@@ -12,7 +20,7 @@ copyextras() {
 	fi
 
 	if [ -d /build ]; then
-		rsync -arq --exclude=tomcat --exclude=logs /build/ ${LIFERAY_HOME}/
+		rsync -arq --exclude=tomcat --exclude=logs --exclude=patches /build/ ${LIFERAY_HOME}/
 
 		if [ -d /build/tomcat ] && [ "" == "$(find /build/tomcat -name catalina.sh)" ]; then
 			rsync -arq /build/tomcat/ ${LIFERAY_HOME}/tomcat/
