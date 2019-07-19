@@ -207,6 +207,8 @@ copyextras() {
 	echo 'auto.update.plugins=true' >> default.properties
 	./patching-tool.sh install
 	cd -
+
+	rm -rf ${LIFERAY_HOME}/osgi/state
 }
 
 downloadrelease() {
@@ -266,17 +268,23 @@ downloadrelease() {
 }
 
 downloadlicense() {
-	if [ -d /build/deploy ] && [ "" != "$(find /build/deploy -name '*.xml')" ]; then
-		return 0
-	fi
-
-	if [ -d ${LIFERAY_HOME}/deploy ] && [ "" != "$(find ${LIFERAY_HOME}/deploy -name '*.xml')" ]; then
-		return 0
-	fi
-
 	if [ -d /build/data/license ] || [ -d ${LIFERAY_HOME}/data/license ]; then
 		return 0
 	fi
+
+	for file in $(test -d ${LIFERAY_HOME}/deploy && find ${LIFERAY_HOME}/deploy -name '*.xml'); do
+		if [ "" == "${file}" ]; then
+			continue
+		fi
+
+		if [ "" != "$(grep -F '<product-name>Portal' ${file})" ]; then
+			return 0
+		fi
+
+		if [ "" != "$(grep -F '<product-name>Digital Enterprise' ${file})" ]; then
+			return 0
+		fi
+	done
 
 	local RELEASE_ID_NUMERIC=$(echo "$RELEASE_ID" | cut -d'.' -f 1,2,3 | tr -d '.')
 	local LICENSE_URL="${LICENSE_MIRROR}/${RELEASE_ID_NUMERIC}.xml"
