@@ -113,6 +113,16 @@ parsearg() {
 		return 0
 	fi
 
+	if [[ "$1" == *.zip ]]; then
+		if [[ $1 == http* ]]; then
+			PATCH_ID=$(echo $1 | rev | cut -d'/' -f 1 | rev | cut -d'.' -f 1)
+		else
+			PATCH_ID=$(echo $1 | cut -d'.' -f 1)
+		fi
+
+		return 0
+	fi
+
 	if [ "" != "${BUILD_NAME}" ] || [ "" != "${BASE_TAG}" ]; then
 		return 0
 	fi
@@ -164,10 +174,5 @@ parsearg() {
 	fi
 
 	BASE_TAG=
-
-	if [[ $1 == http* ]]; then
-		PATCH_ID=$(echo $1 | rev | cut -d'/' -f 1 | rev | cut -d'.' -f 1)
-	else
-		PATCH_ID=$1
-	fi
+	PATCH_ID=$1
 }
