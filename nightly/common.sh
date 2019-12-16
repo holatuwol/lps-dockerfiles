@@ -42,6 +42,10 @@ envreload() {
 		return 0
 	fi
 
+	if [ "" == "${BUILD_MOUNT_POINT}" ]; then
+		BUILD_MOUNT_POINT='/build'
+	fi
+
 	# Set a random password
 
 	if [ "" == "${LIFERAY_PASSWORD}" ]; then

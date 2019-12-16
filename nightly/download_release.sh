@@ -10,15 +10,15 @@ checkservicepack() {
 		return 0
 	fi
 
-	if [[ ${PATCH_ID} == *hotfix* ]]; then
-		if [[ ${PATCH_ID} == *-7010 ]] || [[ ${PATCH_ID} == *-7010.zip ]]; then
-			RELEASE_ID=7.0.10
-		elif [[ ${PATCH_ID} == *-7110 ]] || [[ ${PATCH_ID} == *-7110.zip ]]; then
-			RELEASE_ID=7.1.10
-		elif [[ ${PATCH_ID} == *-7210 ]] || [[ ${PATCH_ID} == *-7210.zip ]]; then
-			RELEASE_ID=7.2.10
-		fi
+	if [[ ${PATCH_ID} == *-7010 ]] || [[ ${PATCH_ID} == *-7010.zip ]]; then
+		RELEASE_ID=7.0.10
+	elif [[ ${PATCH_ID} == *-7110 ]] || [[ ${PATCH_ID} == *-7110.zip ]]; then
+		RELEASE_ID=7.1.10
+	elif [[ ${PATCH_ID} == *-7210 ]] || [[ ${PATCH_ID} == *-7210.zip ]]; then
+		RELEASE_ID=7.2.10
+	fi
 
+	if [[ ${PATCH_ID} == *hotfix* ]]; then
 		cd "${LIFERAY_HOME}"
 		mkdir -p patches
 		getpatch ${PATCH_ID}
@@ -65,6 +65,7 @@ checkservicepack() {
 	SERVICE_PACKS[dxp-10-7110]=7.1.10.2
 
 	SERVICE_PACKS[dxp-0-7210]=7.2.10
+	SERVICE_PACKS[dxp-2-7210]=7.2.10.1
 
 	closestservicepack ${PATCH_ID}
 }
@@ -100,8 +101,10 @@ closestservicepack() {
 	fi
 
 	if [[ "${1}" == dxp-* ]]; then
+		local RELEASE_VERSION=$(echo "${1}" | cut -d'-' -f 3)
+
 		for id in $(seq 0 $(echo "${1}" | cut -d'-' -f 2) | tac); do
-			RELEASE_ID=${SERVICE_PACKS[dxp-${id}]}
+			RELEASE_ID=${SERVICE_PACKS[dxp-${id}-${RELEASE_VERSION}]}
 
 			if [ "" != "${RELEASE_ID}" ]; then
 				echo "${1} is closest to service pack ${RELEASE_ID}"
@@ -136,7 +139,7 @@ closestservicepack() {
 }
 
 copyextras() {
-	if [ ! -d /build/patches ] && [ ! -d "${LIFERAY_HOME}/patching-tool" ]; then
+	if [ ! -d ${BUILD_MOUNT_POINT}/patches ] && [ ! -d "${LIFERAY_HOME}/patching-tool" ]; then
 		if [ "" == "$RELEASE_ID" ] || [[ 10 -lt $(echo "$RELEASE_ID" | cut -d'.' -f 3 | cut -d'-' -f 1) ]]; then
 			echo "Not an EE release, so patches will not be installed"
 			return 0
@@ -185,13 +188,13 @@ copyextras() {
 		cd -
 	fi
 
-	if [ -d "/build/patches" ]; then
+	if [ -d "${BUILD_MOUNT_POINT}/patches" ]; then
 		mkdir -p "${LIFERAY_HOME}/patches"
 
 		if [ -f /usr/bin/rsync ]; then
-			rsync -av "/build/patches/" "${LIFERAY_HOME}/patches/"
+			rsync -av "${BUILD_MOUNT_POINT}/patches/" "${LIFERAY_HOME}/patches/"
 		else
-			cp -f /build/patches/ "${LIFERAY_HOME}/patches/"
+			cp -f ${BUILD_MOUNT_POINT}/patches/ "${LIFERAY_HOME}/patches/"
 		fi
 	fi
 
@@ -228,13 +231,14 @@ downloadrelease() {
 
 	if [[ 10 -le $(echo "$RELEASE_ID" | cut -d'.' -f 3 | cut -d'-' -f 1) ]]; then
 		downloadlicense
+		REQUEST_URL="$LIFERAY_FILES_MIRROR/private/ee/portal/${RELEASE_ID}/"
 	else
 		REQUEST_URL="$LIFERAY_RELEASES_MIRROR/portal/${RELEASE_ID}/"
 	fi
 
 	echo "Identifying build candidate (release) via ${REQUEST_URL}"
 
-	local BUILD_CANDIDATE=$(curl -s --connect-timeout 2 $REQUEST_URL | grep -o '<a href="[^"]*tomcat-[^"]*\.\(7z\|zip\)">' | grep -vF 'jre' | cut -d'"' -f 2 | sort | tail -1)
+	local BUILD_CANDIDATE=$(curl ${FILES_CREDENTIALS} -s --connect-timeout 2 $REQUEST_URL | grep -o '<a href="[^"]*tomcat-[^"]*\.\(7z\|zip\)">' | grep -vF 'jre' | grep -vF 'slim' | cut -d'"' -f 2 | sort | tail -1)
 
 	if [ "" == "$BUILD_CANDIDATE" ]; then
 		echo "Unable to identify build candidate (maybe you forgot to connect to a VPN)"
@@ -268,7 +272,7 @@ downloadrelease() {
 }
 
 downloadlicense() {
-	if [ -d /build/data/license ] || [ -d ${LIFERAY_HOME}/data/license ]; then
+	if [ -d ${BUILD_MOUNT_POINT}/data/license ] || [ -d ${LIFERAY_HOME}/data/license ]; then
 		return 0
 	fi
 
@@ -286,6 +290,10 @@ downloadlicense() {
 		fi
 	done
 
+	if [ "" == "${LICENSE_MIRROR}" ]; then
+		return 1
+	fi
+
 	local RELEASE_ID_NUMERIC=$(echo "$RELEASE_ID" | cut -d'.' -f 1,2,3 | tr -d '.')
 	local LICENSE_URL="${LICENSE_MIRROR}/${RELEASE_ID_NUMERIC}.xml"
 
@@ -293,8 +301,6 @@ downloadlicense() {
 
 	mkdir -p ${LIFERAY_HOME}/deploy/
 	curl --connect-timeout 2 -o ${LIFERAY_HOME}/deploy/license.xml "${LICENSE_URL}"
-
-	REQUEST_URL="$LIFERAY_FILES_MIRROR/private/ee/portal/${RELEASE_ID}/"
 }
 
 getpatch() {
@@ -316,15 +322,15 @@ getpatch() {
 	elif [ -f ${LIFERAY_HOME}/patching-tool/patches/${PATCH_FILE} ]; then
 		PATCH_LOCATION="${LIFERAY_HOME}/patching-tool/patches/${PATCH_FILE}"
 		echo "Using existing patch file ${PATCH_LOCATION}"
-	elif [ -f /build/patches/${PATCH_FILE} ]; then
-		PATCH_LOCATION="/build/patches/${PATCH_FILE}"
+	elif [ -f ${BUILD_MOUNT_POINT}/patches/${PATCH_FILE} ]; then
+		PATCH_LOCATION="${BUILD_MOUNT_POINT}/patches/${PATCH_FILE}"
 		echo "Using existing patch file ${PATCH_LOCATION}"
 	else
 		local RELEASE_ID_SHORT=$(echo "$RELEASE_ID" | cut -d'.' -f 1,2,3)
 		local REQUEST_URL="$LIFERAY_FILES_MIRROR/private/ee/fix-packs/${RELEASE_ID_SHORT}/${PATCH_FOLDER}/${PATCH_FILE}"
 
 		echo "Attempting to download ${REQUEST_URL}"
-		curl -o ${PATCH_LOCATION} "${REQUEST_URL}"
+		curl ${FILES_CREDENTIALS} -o ${PATCH_LOCATION} "${REQUEST_URL}"
 	fi
 
 	local NEEDED_PATCH_ID=
@@ -360,19 +366,20 @@ getpatchingtool() {
 	local PATCHING_TOOL_VERSION=
 
 	if [[ "$RELEASE_ID" == 6.1.30* ]] || [[ "$RELEASE_ID" == 6.2.10* ]]; then
-		PATCHING_TOOL_VERSION=patching-tool-$(curl $REQUEST_URL/LATEST.txt)-internal.zip
+		PATCHING_TOOL_VERSION=patching-tool-$(curl ${FILES_CREDENTIALS} $REQUEST_URL/LATEST.txt)-internal.zip
 	else
-		PATCHING_TOOL_VERSION=patching-tool-$(curl $REQUEST_URL/LATEST-2.0.txt)-internal.zip
+		curl ${FILES_CREDENTIALS} $REQUEST_URL/LATEST-2.0.txt
+		PATCHING_TOOL_VERSION=patching-tool-$(curl ${FILES_CREDENTIALS} $REQUEST_URL/LATEST-2.0.txt)-internal.zip
 	fi
 
-	if [ -f $PATCHING_TOOL_VERSION ]; then
+	if [ -f $PATCHING_TOOL_VERSION ] && [ -d patching-tool ]; then
 		return 0
 	fi
 
 	REQUEST_URL=${REQUEST_URL}${PATCHING_TOOL_VERSION}
 
 	echo "Retrieving latest patching tool at ${REQUEST_URL}"
-	curl -o $PATCHING_TOOL_VERSION $REQUEST_URL
+	curl ${FILES_CREDENTIALS} -o $PATCHING_TOOL_VERSION $REQUEST_URL
 
 	rm -rf patching-tool
 	unzip $PATCHING_TOOL_VERSION

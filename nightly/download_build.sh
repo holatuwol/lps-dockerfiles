@@ -5,14 +5,14 @@ downloadbuild() {
 
 	if [ "false" == "${DOWNLOAD_BUILD}" ]; then
 		return 0
-	elif [ -d /build ] && [ "" != "$(find /build -name catalina.sh)" ]; then
-		rsync -arq --exclude=tomcat --exclude=logs /build/ ${LIFERAY_HOME}/
+	elif [ -d ${BUILD_MOUNT_POINT} ] && [ "" != "$(find ${BUILD_MOUNT_POINT} -name catalina.sh)" ]; then
+		rsync -arq --exclude=tomcat --exclude=logs ${BUILD_MOUNT_POINT}/ ${LIFERAY_HOME}/
 
 		return 0
 	elif [ "" != "$(find ${LIFERAY_HOME} -name catalina.sh)" ]; then
 		return 0
 	elif [ "" != "$BUILD_NAME" ]; then
-		cp /build/$BUILD_NAME ${LIFERAY_HOME}
+		cp ${BUILD_MOUNT_POINT}/$BUILD_NAME ${LIFERAY_HOME}
 		extract
 		return $?
 	elif [ "" != "$BASE_TAG" ]; then
@@ -87,6 +87,7 @@ extract() {
 
 getbuild() {
 	local LOCAL_NAME=$(basename $1)
+	local REMOTE_NAME=${LOCAL_NAME}
 
 	if [ "" != "$2" ]; then
 		LOCAL_NAME=$2
@@ -97,15 +98,15 @@ getbuild() {
 		return 0
 	fi
 
-	if [ -f "/build/${LOCAL_NAME}" ]; then
-		cp "/build/${LOCAL_NAME}" "${LIFERAY_HOME}/${LOCAL_NAME}"
+	if [ -f "${BUILD_MOUNT_POINT}/${REMOTE_NAME}" ]; then
+		cp "${BUILD_MOUNT_POINT}/${REMOTE_NAME}" "${LIFERAY_HOME}/${LOCAL_NAME}"
 		echo "Already downloaded ${LOCAL_NAME}"
 		return 0
 	fi
 
 	echo "Attempting to download $1 to ${LOCAL_NAME}"
 
-	curl -o ${LIFERAY_HOME}/${LOCAL_NAME} "$1"
+	curl ${FILES_CREDENTIALS} -o ${LIFERAY_HOME}/${LOCAL_NAME} "$1"
 }
 
 parsearg() {
