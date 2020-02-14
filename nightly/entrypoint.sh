@@ -2,6 +2,10 @@
 
 . ${HOME}/common.sh
 
+if [ -f ${BUILD_MOUNT_POINT}/network.sh ]; then
+	${BUILD_MOUNT_POINT}/network.sh
+fi
+
 set -o xtrace
 
 cd ${LIFERAY_HOME}

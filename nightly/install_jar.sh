@@ -67,6 +67,10 @@ install_jar() {
 	local PRIVATE_PASSWORD=$(git show ${PRIVATE_BRANCH}:working.dir.properties | grep -F "build.repository.private.password[${PRIVATE_BRANCH}]=" | cut -d'=' -f 2)
 
 	curl -u ${PRIVATE_USERNAME}:${PRIVATE_PASSWORD} -o ${EXTRA_JAR} ${ARTIFACT_URL}
+
+	if ! unzip -l ${EXTRA_JAR} > /dev/null; then
+		rm ${EXTRA_JAR}
+	fi
 }
 
 install_jar $1 $2 $3

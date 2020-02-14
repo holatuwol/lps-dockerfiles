@@ -46,6 +46,10 @@ envreload() {
 		BUILD_MOUNT_POINT='/build'
 	fi
 
+	if [ "" == "${LIFERAY_FILES_EE_FOLDER}" ]; then
+		LIFERAY_FILES_EE_FOLDER='private/ee'
+	fi
+
 	# Set a random password
 
 	if [ "" == "${LIFERAY_PASSWORD}" ]; then
