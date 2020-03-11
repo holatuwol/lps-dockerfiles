@@ -33,8 +33,8 @@ prepare_server() {
 
 	mkdir -p ${WILDFLY_HOME}/modules/com/liferay/portal/main/
 
-	for file in ccpp.jar hsql.jar portal-kernel.jar portlet.jar; do
-		mv ${CATALINA_HOME}/lib/ext/${file} ${WILDFLY_HOME}/modules/com/liferay/portal/main/
+	for file in ccpp.jar hsql.jar portal-kernel.jar portal-service.jar portlet.jar; do
+		test -f ${CATALINA_HOME}/lib/ext/${file} && mv ${CATALINA_HOME}/lib/ext/${file} ${WILDFLY_HOME}/modules/com/liferay/portal/main/
 	done
 
 	for file in ${CATALINA_HOME}/lib/ext/com.liferay.*; do
