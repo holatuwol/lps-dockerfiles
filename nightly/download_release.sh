@@ -293,7 +293,9 @@ downloadlicense() {
 	local RELEASE_ID_NUMERIC=$(echo "$RELEASE_ID" | cut -d'.' -f 1,2,3 | tr -d '.')
 
 	if [ -f /license/${RELEASE_ID_NUMERIC}.xml ]; then
+		mkdir -p ${LIFERAY_HOME}/deploy
 		cp /license/${RELEASE_ID_NUMERIC}.xml ${LIFERAY_HOME}/deploy/license.xml
+		return $?
 	fi
 
 	if [ "" == "${LICENSE_MIRROR}" ]; then
