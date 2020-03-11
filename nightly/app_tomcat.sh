@@ -70,6 +70,9 @@ prepare_server() {
 		mv ${CATALINA_HOME}/conf/server.xml.http ${CATALINA_HOME}/conf/server.xml
 	fi
 
+	sed -i '/ port="8009"/s/<!--//g' ${CATALINA_HOME}/conf/server.xml
+	sed -i '/ port="8009"/s/-->//g' ${CATALINA_HOME}/conf/server.xml
+
 	sed -n '1,/ port="8443"/p' ${CATALINA_HOME}/conf/server.xml | sed '$d' | sed '$d' > ${CATALINA_HOME}/conf/server.xml.https
 
 	if [ "" != "$(grep -F 'Apache Tomcat Version 9' ${CATALINA_HOME}/RELEASE-NOTES)" ]; then
