@@ -6,6 +6,7 @@ common.sh
 download_branch.sh
 download_build.sh
 download_release.sh
+enable_ajp.py
 entrypoint.sh
 install_jar.sh
 setenv.sh

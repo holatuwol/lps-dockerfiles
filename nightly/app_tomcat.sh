@@ -52,6 +52,8 @@ prepare_server() {
 		echo -e "\n\n. ${HOME}/setenv.sh" >> ${CATALINA_HOME}/bin/setenv.sh
 	fi
 
+	python /home/liferay/enable_ajp.py ${CATALINA_HOME}/conf/server.xml
+
 	if [ -d /opt/ibm/java ]; then
 		return 0
 	fi
@@ -69,9 +71,6 @@ prepare_server() {
 		rm -f ${CATALINA_HOME}/conf/server.xml ${CATALINA_HOME}/conf/server.xml.https
 		mv ${CATALINA_HOME}/conf/server.xml.http ${CATALINA_HOME}/conf/server.xml
 	fi
-
-	sed -i '/ port="8009"/s/<!--//g' ${CATALINA_HOME}/conf/server.xml
-	sed -i '/ port="8009"/s/-->//g' ${CATALINA_HOME}/conf/server.xml
 
 	sed -n '1,/ port="8443"/p' ${CATALINA_HOME}/conf/server.xml | sed '$d' | sed '$d' > ${CATALINA_HOME}/conf/server.xml.https
 

@@ -4,6 +4,10 @@ APP_SERVER_SCRIPT=$(grep -F app_ .gitignore)
 
 cp -f ../nightly/${APP_SERVER_SCRIPT} .
 
+if [ "app_tomcat.sh" == "${APP_SERVER_SCRIPT}" ]; then
+	cp -f ../nightly/enable_ajp.py .
+fi
+
 cp -f ../nightly/bundle.sh .
 cp -f ../nightly/cluster.sh .
 cp -f ../nightly/common.sh .

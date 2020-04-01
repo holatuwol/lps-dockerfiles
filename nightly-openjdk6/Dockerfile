@@ -15,13 +15,14 @@ ENV LIFERAY_FILES_MIRROR http://172.16.168.221/files.liferay.com
 ENV LIFERAY_RELEASES_MIRROR http://172.16.168.221/releases.liferay.com
 
 RUN	apt-get update && \
-	apt-get install -y --no-install-recommends ca-certificates curl net-tools openssh-client openssl p7zip p7zip-full rsync telnet unzip vim && \
+	apt-get install -y --no-install-recommends ca-certificates curl net-tools openssh-client openssl p7zip p7zip-full python3 rsync telnet unzip vim && \
 	rm -rf /var/lib/apt/lists/* && \
 	useradd -ms /bin/bash liferay && \
 	mkdir -p /opt/liferay/data && \
 	chown -R liferay:liferay /opt/liferay
 
 COPY *.sh /home/liferay/
+COPY *.py /home/liferay/
 COPY sslconfig.cnf.base /home/liferay/
 
 RUN chown liferay:liferay /home/liferay/*.sh && \
