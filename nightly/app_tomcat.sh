@@ -52,7 +52,7 @@ prepare_server() {
 		echo -e "\n\n. ${HOME}/setenv.sh" >> ${CATALINA_HOME}/bin/setenv.sh
 	fi
 
-	python /home/liferay/enable_ajp.py ${CATALINA_HOME}/conf/server.xml
+	python3 /home/liferay/enable_ajp.py ${CATALINA_HOME}/conf/server.xml
 
 	if [ -d /opt/ibm/java ]; then
 		return 0
