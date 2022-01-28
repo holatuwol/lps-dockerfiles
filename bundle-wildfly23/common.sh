@@ -6,7 +6,7 @@ copyextras() {
 
 syncliferayhome() {
 	if [ -f /build/portal-ext.properties ]; then
-		cp /build/portal-ext.properties ${LIFERAY_HOME}/
+		ln -s /build/portal-ext.properties ${LIFERAY_HOME}/
 	fi
 
 	if [ -d "/build/drivers" ]; then
@@ -16,11 +16,20 @@ syncliferayhome() {
 	fi
 
 	if [ -d /build ]; then
-		cp -rf /build/osgi ${LIFERAY_HOME}/
-		cp -rf /build/deploy ${LIFERAY_HOME}/
+		mkdir -p ${LIFERAY_HOME}/osgi
 
-		mkdir -p ${LIFERAY_HOME}/tomcat/
-		cp -rf /build/tomcat*/* ${LIFERAY_HOME}/tomcat/
+		for file in /build/osgi/*; do
+			if [ -d ${file} ] && [ "state" != "$(basename ${file})" ]; then
+				if [ "static" == "$(basename ${file})" ]; then
+					cp -R ${file} ${LIFERAY_HOME}/osgi/
+				else
+					ln -s ${file} ${LIFERAY_HOME}/osgi/
+				fi
+			fi
+		done
+
+		ln -s /build/deploy ${LIFERAY_HOME}/
+		ln -s /build/tomcat*/ ${LIFERAY_HOME}/tomcat
 	fi
 
 	if [ -d /opt/ibm/java ]; then

@@ -1,50 +1,56 @@
 #!/bin/bash
 
+
 add_module_xml() {
+	mkdir -p ${WILDFLY_HOME}/modules/com/liferay/portal/main/
+
 	echo '<?xml version="1.0"?>
+<module xmlns="urn:jboss:module:1.0" name="com.liferay.portal">' > ${WILDFLY_HOME}/modules/com/liferay/portal/main/module.xml
 
-<module xmlns="urn:jboss:module:1.0" name="com.liferay.portal">
-<resources>' > ${WILDFLY_HOME}/modules/com/liferay/portal/main/module.xml
+	if [ -d ${CATALINA_HOME}/lib/ext ]; then
+	(
+		echo '<resources>'
 
-	for file in $(ls -1 ${WILDFLY_HOME}/modules/com/liferay/portal/main/); do
-		if [[ ${file} == *.jar ]] && [ "${file}" != "support-tomcat.jar" ]; then
-			echo '<resource-root path="'${file}'" />' >> ${WILDFLY_HOME}/modules/com/liferay/portal/main/module.xml
-		fi
-	done
+		for file in ccpp.jar hsql.jar portal-kernel.jar portal-service.jar portlet.jar; do
+			if [ ! -f "${CATALINA_HOME}/lib/ext/${file}" ]; then
+				continue
+			fi
 
-	echo '</resources>
-<dependencies>
+			cp ${CATALINA_HOME}/lib/ext/${file} ${WILDFLY_HOME}/modules/com/liferay/portal/main/
+			echo '<resource-root path="'${file}'" />'
+		done
+
+		for file in ${CATALINA_HOME}/lib/ext/com.liferay.*; do
+			cp ${file} ${WILDFLY_HOME}/modules/com/liferay/portal/main/
+			echo '<resource-root path="'${file}'" />'
+		done
+
+		echo '</resources>'
+	) >> ${WILDFLY_HOME}/modules/com/liferay/portal/main/module.xml
+	fi
+
+	echo '<dependencies>
 <module name="ibm.jdk" />
 <module name="javax.api" />
 <module name="javax.mail.api" />
 <module name="javax.servlet.api" />
 <module name="javax.servlet.jsp.api" />
 <module name="javax.transaction.api" />
-</dependencies>
-</module>' >> ${WILDFLY_HOME}/modules/com/liferay/portal/main/module.xml
+</dependencies>' >> ${WILDFLY_HOME}/modules/com/liferay/portal/main/module.xml
+
+	echo '</module>' >> ${WILDFLY_HOME}/modules/com/liferay/portal/main/module.xml
 }
 
 prepare_server() {
 	cd ${LIFERAY_HOME}
-
-	local CATALINA_HOME=$(dirname $(find ${LIFERAY_HOME} -mindepth 2 -maxdepth 2 -type d -name 'webapps'))
+	CATALINA_HOME="${LIFERAY_HOME}/tomcat"
 
 	mkdir -p ${WILDFLY_HOME}/standalone/deployments/
-	mv ${CATALINA_HOME}/webapps/ROOT ${WILDFLY_HOME}/standalone/deployments/ROOT.war
+	ln -s ${CATALINA_HOME}/webapps/ROOT ${WILDFLY_HOME}/standalone/deployments/ROOT.war
 
-	if [ ! -d ${WILDFLY_HOME}/standalone/deployments/ROOT.war/WEB-INF/shielded-container-lib ]; then
-		mkdir -p ${WILDFLY_HOME}/modules/com/liferay/portal/main/
+	add_module_xml
 
-		for file in ccpp.jar hsql.jar portal-kernel.jar portal-service.jar portlet.jar; do
-			test -f ${CATALINA_HOME}/lib/ext/${file} && mv ${CATALINA_HOME}/lib/ext/${file} ${WILDFLY_HOME}/modules/com/liferay/portal/main/
-		done
-
-		for file in ${CATALINA_HOME}/lib/ext/com.liferay.*; do
-			mv ${file} ${WILDFLY_HOME}/modules/com/liferay/portal/main/
-		done
-
-		add_module_xml
-
+	if [ -d ${CATALINA_HOME}/lib/ext ]; then
 		cp ${LIFERAY_HOME}/osgi/core/com.liferay.osgi.service.tracker.collections*.jar ${WILDFLY_HOME}/modules/com/liferay/portal/main/com.liferay.osgi.service.tracker.collections.jar
 	fi
 
@@ -56,7 +62,12 @@ start_server() {
 	sed -i.bak "s/-Xmx[0-9MmGg]*/-Xmx${JVM_HEAP_SIZE}/g" ${WILDFLY_HOME}/bin/standalone.conf
 	sed -i.bak "s/-XX:MetaspaceSize=[0-9MmGg]*//g" ${WILDFLY_HOME}/bin/standalone.conf
 	sed -i.bak "s/-XX:MaxMetaspaceSize=[0-9MmGg]*//g" ${WILDFLY_HOME}/bin/standalone.conf
-	cat ${WILDFLY_HOME}/bin/standalone.conf
 
-	/opt/jboss/wildfly/bin/standalone.sh -b 0.0.0.0 --debug 8000
+	if [ "" == "$(grep -F file.encoding ${WILDFLY_HOME}/bin/standalone.conf)" ]; then
+		echo '
+JAVA_OPTS="$JAVA_OPTS -Dfile.encoding=UTF-8 -Djava.locale.providers=JRE,COMPAT,CLDR -Djava.net.preferIPv4Stack=true -Dlog4j2.formatMsgNoLookups=true -Duser.timezone=GMT"
+' >> ${WILDFLY_HOME}/bin/standalone.conf
+	fi
+
+	/opt/jboss/wildfly/bin/standalone.sh -b 0.0.0.0 --debug '*:8000'
 }

@@ -3,7 +3,7 @@
 fix_db_address() {
 	if [ -f ${LIFERAY_HOME}/portal-ext.properties ]; then
 		BASE_IP=$(hostname -I | cut -d'.' -f 1,2,3)
-		sed -i.bak "s/localhost/${BASE_IP}.1/g" ${LIFERAY_HOME}/portal-ext.properties
+		sed -i "/^jdbc/s/localhost/${BASE_IP}.1/g" ${LIFERAY_HOME}/portal-ext.properties
 	fi
 }
 
