@@ -25,5 +25,6 @@ RUN ldconfig
 USER liferay
 
 COPY portal-ext.properties /opt/liferay/
+COPY com.liferay.adaptive.media.image.internal.configuration.AMImageConfiguration.config /opt/liferay/osgi/configs/
 
 ENV LIFERAY_JPDA_ENABLED=true
