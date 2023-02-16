@@ -1,12 +1,12 @@
 #!/bin/bash
 
 if [ ! -d /source ]; then
-  echo 'docker run --rm -v ${PWD}:/source -v ${PWD}/../bundles:/bundles build-liferay:jdk6'
+  echo 'docker run --rm -v ${PORTAL_SOURCE}:/source -v ${LIFERAY_HOME}:/bundles build-liferay:jdk6'
   exit 1
 fi
 
 if [ ! -d /bundles ]; then
-  echo 'docker run --rm -v ${PWD}:/source -v ${PWD}/../bundles:/bundles build-liferay:jdk6'
+  echo 'docker run --rm -v ${PORTAL_SOURCE}:/source -v ${LIFERAY_HOME}:/bundles build-liferay:jdk6'
   exit 1
 fi
 
