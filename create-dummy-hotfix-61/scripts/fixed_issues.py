@@ -20,11 +20,8 @@ def extract_tickets(tickets, message):
 
 commits = []
 
-if os.path.isdir('.git'):
-    commits = git.log('--pretty=%s', 'fix-pack-base-6120..HEAD').split('\n')
-else:
-    with open('git_log_subject.txt', 'r') as f:
-        commits = [subject.strip() for subject in f.readlines()]
+with open('git_log_subject.txt', 'r') as f:
+    commits = [subject.strip() for subject in f.readlines()]
 
 tickets = reduce(extract_tickets, commits, set())
 
