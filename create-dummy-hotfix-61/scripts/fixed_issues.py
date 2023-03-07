@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 
-from functools import reduce
+from functools import partial, reduce
 import git
 from jira import get_issues
 import json
@@ -18,7 +18,14 @@ def extract_tickets(tickets, message):
     tickets.update(result)
     return tickets
 
-commits = git.log('--pretty=%s', 'fix-pack-base-6120..HEAD').split('\n')
+commits = []
+
+if os.path.isdir('.git'):
+    commits = git.log('--pretty=%s', 'fix-pack-base-6120..HEAD').split('\n')
+else:
+    with open('git_log_subject.txt', 'r') as f:
+        commits = [subject.strip() for subject in f.readlines()]
+
 tickets = reduce(extract_tickets, commits, set())
 
 lpe_tickets = {}
@@ -27,22 +34,23 @@ if os.path.exists('lpe_tickets.json'):
     with open('lpe_tickets.json', 'r') as f:
         lpe_tickets = json.load(f)
 
-def lookup_tickets(tickets, ticket):
-    print('Checking %s...' % ticket)
+def lookup_tickets(ticket_count, lpe_tickets, next_item):
+    i, ticket = next_item
+    print('Checking %s (ticket %d/%d)...' % (ticket, i+1, ticket_count))
 
-    if ticket in tickets:
-        return tickets
+    if ticket in lpe_tickets:
+        return lpe_tickets
     
     if ticket[:3] == 'LPE':
-        tickets[ticket] = [ticket]
-        return tickets
+        lpe_tickets[ticket] = [ticket]
+        return lpe_tickets
     
     lpe_query = 'project = LPE and issue in linkedIssues(%s)' % ticket
     linked_lpe = get_issues(lpe_query, []).keys()
-    tickets[ticket] = list(linked_lpe)
-    return tickets
+    lpe_tickets[ticket] = list(linked_lpe)
+    return lpe_tickets
 
-lpe_tickets = reduce(lookup_tickets, tickets, lpe_tickets)
+lpe_tickets = reduce(partial(lookup_tickets, len(tickets)), enumerate(tickets), lpe_tickets)
 
 with open('lpe_tickets.json', 'w') as f:
     json.dump(lpe_tickets, f)

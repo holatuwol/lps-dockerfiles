@@ -5,12 +5,6 @@ if [ ! -d /source ]; then
   exit 1
 fi
 
-if [ ! -d /source/.git ]; then
-  echo 'git commands cannot be run against a mounted worktree folder'
-  echo 'Please mount the actual cloned repository folder to /source'
-  exit 1
-fi
-
 cd /source
 
 echo "app.server.parent.dir=/bundles
@@ -33,6 +27,6 @@ ant clean && \
   ant -f build-dist.xml unzip-tomcat && \
   ant start deploy && \
   /scripts/create_ext_plugin.sh && \
-  python /scripts/fixed_issues.py && \
+  python -u /scripts/fixed_issues.py && \
   /scripts/prepare_hotfix.sh && \
-  python /scripts/create_fp_docs.py
+  python -u /scripts/create_fp_docs.py

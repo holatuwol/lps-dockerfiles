@@ -8,7 +8,13 @@ import git
 import os
 import shutil
 
-commit_count = len(git.log('--pretty=%H', 'fix-pack-base-6120..HEAD').split('\n'))
+commit_count = 0
+
+if os.path.isdir('.git'):
+	commit_count = len(git.log('--pretty=%H', 'fix-pack-base-6120..HEAD').split('\n'))
+else:
+	with open('git_log_hash.txt') as f:
+		commit_count = len(f.readlines())
 
 input_file = '/scripts/fixpack_documentation.xml'
 output_file = '/patch/fixpack_documentation.xml'
