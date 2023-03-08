@@ -14,7 +14,7 @@ with open('git_log_hash.txt') as f:
 	commit_count = len(f.readlines())
 
 input_file = '/scripts/fixpack_documentation.xml'
-output_file = '/patch/fixpack_documentation.xml'
+output_file = 'patch/fixpack_documentation.xml'
 
 with open(input_file, 'r') as f:
 	soup = BeautifulSoup(f, features='xml')
@@ -37,8 +37,8 @@ replacements = soup.patch.find('full-file-replacements')
 
 def get_replace_file_tag(folder_name):
 	print(folder_name)
-	for file_name in os.listdir('/patch/jdk6/%s' % folder_name):
-		file_path = '/patch/jdk6/%s/%s' % (folder_name, file_name)
+	for file_name in os.listdir('patch/jdk6/%s' % folder_name):
+		file_path = 'patch/jdk6/%s/%s' % (folder_name, file_name)
 
 		if not os.path.isfile(file_path):
 			continue
@@ -56,4 +56,4 @@ for lib_tag in get_replace_file_tag('WAR_PATH/WEB-INF/lib'):
 with open(output_file, 'w') as f:
 	f.write(soup.prettify())
 
-shutil.make_archive('/source/liferay-mega-patch-%d-6120' % hotfix_id, 'zip', '/patch/')
+shutil.make_archive('/source/liferay-mega-patch-%d-6120' % hotfix_id, 'zip', 'patch/')

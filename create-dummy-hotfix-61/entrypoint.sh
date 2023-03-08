@@ -24,8 +24,9 @@ export PATH="/miniconda3/bin:/opt/java/ant/bin:${PATH}"
 rm -rf /patch/*
 
 ant clean && \
-  ant -f build-dist.xml unzip-tomcat && \
-  ant start deploy && \
+ ant -f build-dist.xml unzip-tomcat && \
+ ant start deploy && \
+  rm app.server.${HOSTNAME}.properties && \
   /scripts/create_ext_plugin.sh && \
   python -u /scripts/fixed_issues.py && \
   /scripts/prepare_hotfix.sh && \

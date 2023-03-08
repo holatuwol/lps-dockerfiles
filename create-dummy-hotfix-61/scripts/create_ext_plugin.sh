@@ -27,8 +27,10 @@ for jar in resin.jar; do
   sed -i "/servlet-api.jar/s/,servlet-api.jar/,servlet-api.jar,${jar}/g" /plugins/build-common.xml
 done
 
-for file in $(git diff --name-only fix-pack-base-6120..HEAD -- global portal | sed 's@^lib/@@g'); do
-  copy_ext_file ext-lib ${file}
+for folder in global portal; do
+  for file in $(grep "^lib/${folder}" ../git_diff_name_only.txt | sed 's@^lib/@@g'); do
+    copy_ext_file ext-lib ${file}
+  done
 done
 
 # Copy the contents of portal-service and portal-impl to the equivalent EXT plugin folder
@@ -36,7 +38,7 @@ done
 for folder in service impl; do
   cd /source/portal-${folder}/src/
 
-  for file in $(git diff --name-only fix-pack-base-6120..HEAD -- . | sed "s@^portal-${folder}/src@.@g"); do
+  for file in $(grep "^portal-${folder}/src/" ../../git_diff_name_only.txt | grep -vF .properties | sed "s@^portal-${folder}/src@.@g"); do
     copy_ext_file ext-${folder}/src ${file}
   done
 done
@@ -46,7 +48,7 @@ done
 for folder in bridges java taglib; do
   cd /source/util-${folder}/src/
 
-  for file in $(git diff --name-only fix-pack-base-6120..HEAD -- . | sed "s@^util-${folder}/src@.@g"); do
+  for file in $(grep "^util-${folder}/src/" ../../git_diff_name_only.txt | sed "s@^util-${folder}/src@.@g"); do
     copy_ext_file ext-util-${folder}/src ${file}
   done
 done
@@ -55,7 +57,7 @@ done
 
 cd /source/portal-web/docroot/
 
-for file in $(git diff --name-only fix-pack-base-6120..HEAD -- . | sed "s@^portal-web/docroot@.@g"); do
+for file in $(grep "^portal-web/docroot/" ../../git_diff_name_only.txt | sed "s@^portal-web/docroot@.@g"); do
   copy_ext_file ext-web/docroot ${file}
 done
 
