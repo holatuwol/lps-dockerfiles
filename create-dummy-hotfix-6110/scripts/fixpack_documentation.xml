@@ -1,0 +1,35 @@
+<?xml version="1.0"?>
+<patch>
+  <id></id>
+  <name></name>
+  <patching-tool-version>14</patching-tool-version>
+  <incremental>false</incremental>
+  <version></version>
+  <rank></rank>
+  <requirements></requirements>
+  <singular>true</singular>
+  <component>hotfix</component>
+  <compatible-build></compatible-build>
+  <product>6110</product>
+  <fixed-issues></fixed-issues>
+  <module-name></module-name>
+  <plugin-dependencies>
+    <plugin-dependency name="util-bridges.jar" auto="true">
+      <portal-path>WAR_PATH/WEB-INF/lib/portal-impl.jar/com/liferay/portal/deploy/dependencies/util-bridges.jar</portal-path>
+      <plugin-path>WEB-INF/lib/util-bridges.jar</plugin-path>
+    </plugin-dependency>
+    <plugin-dependency name="util-java.jar" auto="true">
+      <portal-path>WAR_PATH/WEB-INF/lib/portal-impl.jar/com/liferay/portal/deploy/dependencies/util-java.jar</portal-path>
+      <plugin-path>WEB-INF/lib/util-java.jar</plugin-path>
+    </plugin-dependency>
+    <plugin-dependency name="util-taglib.jar" auto="true">
+      <portal-path>WAR_PATH/WEB-INF/lib/portal-impl.jar/com/liferay/portal/deploy/dependencies/util-taglib.jar</portal-path>
+      <plugin-path>WEB-INF/lib/util-taglib.jar</plugin-path>
+    </plugin-dependency>
+  </plugin-dependencies>
+  <module-id></module-id>
+  <tunnel-web>false</tunnel-web>
+  <build-date><!-- insert content here  --></build-date>
+  <full-file-replacements></full-file-replacements>
+  <delete-files></delete-files>
+</patch>
