@@ -5,6 +5,20 @@ if [ ! -d /source ]; then
   exit 1
 fi
 
+if [ -f /jdk-8u301-linux-x64.tar.gz ]; then
+	echo 'Extracting /jdk-8u301-linux-x64.tar.gz'
+	cd /
+	tar -zxf /jdk-8u301-linux-x64.tar.gz
+	export JAVA_HOME=/jdk1.8.0_301
+	export PATH="/jdk1.8.0_301/bin:${PATH}"
+elif [ -f /jdk-8u202-linux-x64.tar.gz ]; then
+	echo 'Extracting /jdk-8u202-linux-x64.tar.gz'
+	cd /
+	tar -zxf /jdk-8u202-linux-x64.tar.gz
+	export JAVA_HOME=/jdk1.8.0_202
+	export PATH="/jdk1.8.0_202/bin:${PATH}"
+fi
+
 cd /source
 
 echo "app.server.parent.dir=/bundles
@@ -13,6 +27,7 @@ app.server.tomcat.version=${TOMCAT_VERSION}
 
 echo "ant.build.javac.source=1.6
 ant.build.javac.target=1.6
+javac.compiler=modern
 
 app.server.dir=/bundles/tomcat-${TOMCAT_VERSION}
 " | tee /plugins/build.${HOSTNAME}.properties
@@ -27,7 +42,7 @@ ant clean && \
  ant -f build-dist.xml unzip-tomcat && \
  ant start deploy && \
   rm app.server.${HOSTNAME}.properties && \
-  /scripts/create_ext_plugin.sh && \
+  JAVA_HOME="${JAVA_HOME}" PATH="${PATH}" /scripts/create_ext_plugin.sh && \
   python -u /scripts/fixed_issues.py && \
-  /scripts/prepare_hotfix.sh && \
+  JAVA_HOME="${JAVA_HOME}" PATH="${PATH}" /scripts/prepare_hotfix.sh && \
   python -u /scripts/create_fp_docs.py
