@@ -30,6 +30,7 @@ soup.patch.find('id').string = 'mega-patch-%d-6120' % hotfix_id
 soup.patch.find('name').string = 'mega-patch-%d' % hotfix_id
 soup.patch.find('version').string = str(hotfix_id)
 soup.patch.find('rank').string = str(10000 + hotfix_id)
+soup.patch.find('requirements').string = ','.join(['!hotfix-%d' % i for i in range(1, 4385)])
 soup.patch.find('fixed-issues').string = ','.join(fixed_issues)
 soup.patch.find('build-date').string = hotfix_time.strftime('%a, %d %b %Y %H:%M:%S +0000')
 
