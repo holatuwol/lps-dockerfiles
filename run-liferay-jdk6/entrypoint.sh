@@ -12,8 +12,10 @@ elif [ -f liferay-portal-tomcat-6.1.20-*.zip ]; then
 	cd liferay-portal-6.1.20-*
 fi
 
-rm -rf patching-tool
-unzip -qq ../patching-tool*.zip
+if [ "" != "$(find ../patches -name 'patching-tool*.zip')" ]; then
+	rm -rf patching-tool
+	unzip -qq ../patches/patching-tool*.zip
+fi
 
 test -d /patches && cp /patches/*.zip patching-tool/patches/
 sed -i 's@PT_OPTS=@echo PT_OPTS=@g' patching-tool/patching-tool.sh
@@ -33,5 +35,9 @@ else
 fi
 
 cd ../tomcat*/bin
+
+if [ -f /web.xml ]; then
+	cp /web.xml ../webapps/ROOT/WEB-INF/
+fi
 
 ./catalina.sh jpda run
